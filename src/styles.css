@@ -1,0 +1,5 @@
+@import 'primeicons/primeicons.css';
+
+* { box-sizing: border-box; }
+html, body { margin: 0; min-width: 350px; min-height: 100%; }
+body { font-size: 14px; }
