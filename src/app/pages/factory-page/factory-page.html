@@ -4,8 +4,14 @@
   </header>
 
   <main class="diagram-area">
-    <ng-diagram [model]="model" [nodeTemplateMap]="nodeTemplateMap">
-      <ng-diagram-background />
-    </ng-diagram>
+    @if (ready()) {
+      <ng-diagram [config]="config" [model]="model()" [nodeTemplateMap]="nodeTemplateMap">
+        <ng-diagram-background />
+      </ng-diagram>
+    } @else if (layoutError()) {
+      <p class="diagram-message">{{ layoutError() }}</p>
+    } @else {
+      <p class="diagram-message">Расстановка узлов…</p>
+    }
   </main>
 </div>

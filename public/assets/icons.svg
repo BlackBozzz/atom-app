@@ -1,0 +1,32 @@
+<svg xmlns="http://w3.org" style="display: none;">
+  <!-- Иконка района (из первого шага) -->
+  <symbol id="district-icon" viewBox="0 0 24 24">
+    <path fill="currentColor" d="M3 21h18v-2H3v2zm0-4h18v-2H3v2zm0-4h18v-2H3v2zm0-4h18V7H3v2zm0-6v2h18V3H3z"/>
+  </symbol>
+
+  <!-- Иконка объекта инфраструктуры (Станция / ТЭЦ / Водоканал) -->
+  <symbol id="infra-station-icon" viewBox="0 0 24 24">
+    <path fill="currentColor" d="M22 22H2V10l7-3v4l7-3v4h6v10zM4 20h16v-6h-6v-3.5l-7 3V9.5l-3 1.3V20zm3-5h2v3H7v-3zm4 0h2v3h-2v-3zm4 0h2v3h-2v-3z"/>
+  </symbol>
+
+  <symbol id="icon-building" viewBox="0 0 24 24">
+    <path fill="currentColor" d="M3 22V4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v18h-5v-5H8v5H3zm4-16v3h3V6H7zm7 0v3h3V6h-3zM7 12v3h3v-3H7zm7 0v3h3v-3h-3z"/>
+  </symbol>
+  <symbol id="icon-factory" viewBox="0 0 24 24">
+    <path fill="currentColor" d="M3 21V10l6-3v4l6-3v4h6v9H3zm3-7v4h3v-4H6zm6 0v4h3v-4h-3z"/>
+  </symbol>
+  <!-- Статус: Норма (Галочка в круге) -->
+  <symbol id="status-normal" viewBox="0 0 24 24">
+    <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+  </symbol>
+
+  <!-- Статус: Авария (Восклицательный знак в треугольнике) -->
+  <symbol id="status-emergency" viewBox="0 0 24 24">
+    <path fill="currentColor" d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+  </symbol>
+
+  <!-- Статус: Ремонтные работы (Гаечный ключ) -->
+  <symbol id="status-repair" viewBox="0 0 24 24">
+    <path d="M3 7l4-4 4 4-4 4zM9 9l12 12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+</svg>
