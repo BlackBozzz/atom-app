@@ -6,7 +6,6 @@
     [node]="node()"
   >
     <div class="district-header">
-      <!-- Кнопка сворачивания/разворачивания -->
       <button
         class="collapse-btn"
         (click)="toggleCollapse($event)"
@@ -17,7 +16,7 @@
 
       @if (nodeData().iconId) {
         <svg class="district-icon" aria-hidden="true">
-          <use [attr.href]="'#' + nodeData().iconId"></use>
+          <use [attr.href]="'assets/icons.svg#' + nodeData().iconId"></use>
         </svg>
       }
 
@@ -28,10 +27,30 @@
       <div class="district-body"></div>
     }
 
-    <!-- Порты группы. ID намеренно совпадают с ID портов дочерних узлов -->
-    <ng-diagram-port id="port-left" side="left" type="both" />
-    <ng-diagram-port id="port-right" side="right" type="both" />
-    <ng-diagram-port id="port-top" side="top" type="both" />
-    <ng-diagram-port id="port-bottom" side="bottom" type="both" />
+    <!-- 4 порта — в точности как у дочерних узлов -->
+    <ng-diagram-port
+      id="port-water-in"
+      side="left"
+      type="target"
+      class="port-water-in"
+    />
+    <ng-diagram-port
+      id="port-electricity-in"
+      side="left"
+      type="target"
+      class="port-power-in"
+    />
+    <ng-diagram-port
+      id="port-water-out"
+      side="right"
+      type="source"
+      class="port-water-out"
+    />
+    <ng-diagram-port
+      id="port-electricity-out"
+      side="right"
+      type="source"
+      class="port-power-out"
+    />
   </div>
 </ng-diagram-node-resize-adornment>

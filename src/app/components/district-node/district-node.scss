@@ -73,3 +73,86 @@
   flex: 1;
   position: relative;
 }
+
+/* --- Стилизация портов группы --- */
+::ng-deep .port-water {
+  --ngd-port-size: 12px;
+  --ngd-port-background-color: #0284c7; /* Голубой для воды */
+  --ngd-port-border-size: 2px;
+  --ngd-port-border-color: var(--district-bg, rgba(241, 245, 249, 0.8));
+  --ngd-port-border-radius: 50%;
+  /* Смещаем на 50% влево, чтобы центр точки был ровно на границе */
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+}
+
+::ng-deep .port-power {
+  --ngd-port-size: 12px;
+  --ngd-port-background-color: #ca8a04; /* Оранжевый для электричества */
+  --ngd-port-border-size: 2px;
+  --ngd-port-border-color: var(--district-bg, rgba(241, 245, 249, 0.8));
+  --ngd-port-border-radius: 50%;
+  /* Смещаем на 50% вправо, чтобы центр точки был ровно на границе */
+  transform: translate(50%, -50%);
+  cursor: pointer;
+}
+
+/* Подсветка портов при наведении на группу */
+.district-group:hover ::ng-deep .port-water,
+.district-group:hover ::ng-deep .port-power {
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+  transform: translate(-50%, -50%) scale(1.2); /* Для воды */
+}
+
+.district-group:hover ::ng-deep .port-power {
+  transform: translate(50%, -50%) scale(1.2); /* Для энергии */
+}
+
+/* Порты группы — входы слева */
+::ng-deep .port-water-in,
+::ng-deep .port-power-in {
+  --ngd-port-size: 12px;
+  --ngd-port-border-size: 2px;
+  --ngd-port-border-color: var(--district-bg, rgba(241, 245, 249, 0.8));
+  --ngd-port-border-radius: 50%;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+}
+
+::ng-deep .port-water-in {
+  --ngd-port-background-color: #0284c7; /* Голубой для воды */
+}
+
+::ng-deep .port-power-in {
+  --ngd-port-background-color: #ca8a04; /* Оранжевый для электричества */
+}
+
+/* Порты группы — выходы справа */
+::ng-deep .port-water-out,
+::ng-deep .port-power-out {
+  --ngd-port-size: 12px;
+  --ngd-port-border-size: 2px;
+  --ngd-port-border-color: var(--district-bg, rgba(241, 245, 249, 0.8));
+  --ngd-port-border-radius: 50%;
+  transform: translate(50%, -50%);
+  cursor: pointer;
+}
+
+::ng-deep .port-water-out {
+  --ngd-port-background-color: #0284c7;
+}
+
+::ng-deep .port-power-out {
+  --ngd-port-background-color: #ca8a04;
+}
+
+/* Подсветка при наведении */
+.district-group:hover ::ng-deep .port-water-in,
+.district-group:hover ::ng-deep .port-water-out {
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.3);
+}
+
+.district-group:hover ::ng-deep .port-power-in,
+.district-group:hover ::ng-deep .port-power-out {
+  box-shadow: 0 0 0 3px rgba(202, 138, 4, 0.3);
+}
