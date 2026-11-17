@@ -1,11 +1,345 @@
-<div class="factory-page-layout">
-  <header class="toolbar">
-    <div class="toolbar-title">Редактор инфраструктуры</div>
+<div
+  class="shell"
+  [class.theme-light]="theme() === 'light'"
+  [class.no-glow]="!glow()"
+  [class.hide-labels]="!labels()"
+  [style.--building-width.px]="nodeWidth()"
+  (keydown)="onKeydown($event)"
+  tabindex="-1"
+>
+  <div class="aurora" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32">
+          <path d="M16 3c4.6 5.2 7.4 9.1 7.4 12.6A7.4 7.4 0 0 1 16 23a7.4 7.4 0 0 1-7.4-7.4C8.6 12.1 11.4 8.2 16 3z"
+                fill="url(#gWater)" />
+          <path d="M17.6 12.4l-5 7.1h3.3l-1.3 5.6 5.2-7.4h-3.4z" fill="url(#gPower)" />
+          <defs>
+            <linearGradient id="gWater" x1="8" y1="3" x2="24" y2="23">
+              <stop offset="0" stop-color="#67e8f9" /><stop offset="1" stop-color="#0284c7" />
+            </linearGradient>
+            <linearGradient id="gPower" x1="12" y1="12" x2="20" y2="25">
+              <stop offset="0" stop-color="#fde68a" /><stop offset="1" stop-color="#f59e0b" />
+            </linearGradient>
+          </defs>
+        </svg>
+      </span>
+      <div class="brand-text">
+        <strong>Гидроэнерго · Диспетчер</strong>
+        <span>Схема водоснабжения и электроснабжения</span>
+      </div>
+    </div>
+
+    <div class="metrics">
+      <div class="metric"><b>{{ stats().nodes }}</b><span>узлов</span></div>
+      <div class="metric"><b>{{ stats().groups }}</b><span>районов</span></div>
+      <div class="metric"><b>{{ stats().edges }}</b><span>связей</span></div>
+      <div class="metric"><b>{{ stats().layers }}</b><span>слоёв</span></div>
+      <div class="metric" data-tone="danger"><b>{{ faults() }}</b><span>аварий</span></div>
+      <div class="metric" data-tone="warn"><b>{{ repairs() }}</b><span>ремонтов</span></div>
+    </div>
+
+    <div class="topbar-actions">
+      <label class="search">
+        <svg viewBox="0 0 16 16" aria-hidden="true">
+          <circle cx="7" cy="7" r="4.6" fill="none" stroke="currentColor" stroke-width="1.6" />
+          <path d="M10.6 10.6L14 14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+        </svg>
+        <input
+          type="search"
+          placeholder="Поиск узла или кода…"
+          [value]="query()"
+          (input)="onQuery($any($event.target).value)"
+        />
+        @if (query()) { <span class="search-count">{{ matched().length }}</span> }
+      </label>
+
+      <button type="button" class="icon-btn" (click)="undo()" [disabled]="!historyDepth()"
+              title="Отменить (Ctrl+Z)">
+        <svg viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M6 4L2.5 7.5 6 11" fill="none" stroke="currentColor" stroke-width="1.7"
+                stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M2.8 7.5h6.4A4 4 0 0 1 13 11.6" fill="none" stroke="currentColor"
+                stroke-width="1.7" stroke-linecap="round" />
+        </svg>
+        @if (historyDepth()) { <i class="badge">{{ historyDepth() }}</i> }
+      </button>
+
+      <button type="button" class="icon-btn" (click)="theme.set(theme() === 'dark' ? 'light' : 'dark')"
+              [title]="theme() === 'dark' ? 'Светлая тема' : 'Тёмная тема'">
+        @if (theme() === 'dark') {
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <circle cx="8" cy="8" r="3.2" fill="currentColor" />
+            <g stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <path d="M8 1v1.8M8 13.2V15M1 8h1.8M13.2 8H15M3 3l1.3 1.3M11.7 11.7L13 13M13 3l-1.3 1.3M4.3 11.7L3 13" />
+            </g>
+          </svg>
+        } @else {
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M13.2 9.6A5.8 5.8 0 0 1 6.4 2.8a5.9 5.9 0 1 0 6.8 6.8z" fill="currentColor" />
+          </svg>
+        }
+      </button>
+
+      <button type="button" class="primary-btn" (click)="exportJson()">
+        <svg viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M8 2v8M5 7.2l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.7"
+                stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M2.6 12.4v1.2h10.8v-1.2" fill="none" stroke="currentColor" stroke-width="1.7"
+                stroke-linecap="round" />
+        </svg>
+        Экспорт
+      </button>
+    </div>
   </header>
 
-  <main class="diagram-area">
-    <ng-diagram [model]="model" [nodeTemplateMap]="nodeTemplateMap">
-      <ng-diagram-background />
-    </ng-diagram>
-  </main>
+  <div class="workspace">
+    <main class="stage">
+      <ng-diagram [model]="model0" [nodeTemplateMap]="nodeTemplateMap">
+        @if (grid()) { <ng-diagram-background /> }
+      </ng-diagram>
+
+      <div class="stage-legend">
+        <span class="legend-title">Легенда</span>
+        <span class="legend-item"><i class="dot water"></i>Вода</span>
+        <span class="legend-item"><i class="dot power"></i>Энергия</span>
+        <span class="legend-sep"></span>
+        <span class="legend-item"><i class="dot ok"></i>Норма</span>
+        <span class="legend-item"><i class="dot warn"></i>Ремонт</span>
+        <span class="legend-item"><i class="dot danger"></i>Авария</span>
+      </div>
+
+      <div class="stage-hud">
+        <span class="hud-chip" [class.is-busy]="busy()">
+          <i class="hud-led"></i>{{ busy() ? 'Расчёт…' : 'Готово' }}
+        </span>
+        <span class="hud-chip">{{ stats().ms }} мс</span>
+        <span class="hud-chip">{{ stats().crossings }} пересечений</span>
+        <span class="hud-chip">{{ stats().width }}×{{ stats().height }}</span>
+      </div>
+
+      @if (toast()) { <div class="toast" role="status">{{ toast() }}</div> }
+    </main>
+
+    <aside class="rail">
+      <section class="panel">
+        <header class="panel-head">
+          <h2>Раскладка</h2>
+          <button type="button" class="mini-btn" (click)="relayout(0)">Пересчитать</button>
+        </header>
+
+        <div class="field">
+          <label for="mode">Алгоритм</label>
+          <div class="select-wrap">
+            <select id="mode" [value]="mode()" (change)="setMode($any($event.target).value)">
+              @for (m of modes; track m.value) {
+                <option [value]="m.value" [selected]="m.value === mode()">{{ m.label }}</option>
+              }
+            </select>
+          </div>
+          <p class="hint">
+            @for (m of modes; track m.value) { @if (m.value === mode()) { {{ m.hint }} } }
+          </p>
+        </div>
+
+        <div class="field">
+          <label for="dir">Направление потока</label>
+          <div class="select-wrap">
+            <select id="dir" [value]="direction()" (change)="setDirection($any($event.target).value)">
+              @for (d of directions; track d.value) {
+                <option [value]="d.value" [selected]="d.value === direction()">{{ d.label }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div class="field slider">
+          <label for="lg">Расстояние между слоями <b>{{ layerGap() }} px</b></label>
+          <input id="lg" type="range" min="40" max="320" step="5"
+                 [value]="layerGap()"
+                 (input)="layerGap.set(+$any($event.target).value); onSetting()" />
+        </div>
+
+        <div class="field slider">
+          <label for="ng">Отступ между узлами <b>{{ nodeGap() }} px</b></label>
+          <input id="ng" type="range" min="12" max="140" step="2"
+                 [value]="nodeGap()"
+                 (input)="nodeGap.set(+$any($event.target).value); onSetting()" />
+        </div>
+
+        <div class="field slider">
+          <label for="gp">Поля района <b>{{ groupPadding() }} px</b></label>
+          <input id="gp" type="range" min="12" max="90" step="2"
+                 [value]="groupPadding()"
+                 (input)="groupPadding.set(+$any($event.target).value); onSetting()" />
+        </div>
+
+        <div class="field slider">
+          <label for="rx">Свобода размещения <b>{{ relaxation() }}%</b></label>
+          <input id="rx" type="range" min="0" max="100" step="1"
+                 [value]="relaxation()"
+                 (input)="relaxation.set(+$any($event.target).value); onSetting()" />
+        </div>
+
+        <div class="field slider">
+          <label for="nw">Ширина карточки <b>{{ nodeWidth() }} px</b></label>
+          <input id="nw" type="range" min="200" max="380" step="10"
+                 [value]="nodeWidth()"
+                 (input)="nodeWidth.set(+$any($event.target).value); onSetting()" />
+        </div>
+
+        <div class="stepper-row">
+          <div class="stepper">
+            <span>Проходы</span>
+            <div class="stepper-ctrl">
+              <button type="button" (click)="bumpIterations(-2)" aria-label="Меньше проходов">−</button>
+              <b>{{ iterations() }}</b>
+              <button type="button" (click)="bumpIterations(2)" aria-label="Больше проходов">+</button>
+            </div>
+          </div>
+          <div class="stepper">
+            <span>Seed</span>
+            <div class="stepper-ctrl">
+              <button type="button" (click)="bumpSeed(-1)" aria-label="Другой seed">−</button>
+              <b>{{ seed() }}</b>
+              <button type="button" (click)="bumpSeed(1)" aria-label="Другой seed">+</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <header class="panel-head"><h2>Отображение</h2></header>
+
+        <label class="switch">
+          <input type="checkbox" [checked]="grid()" (change)="grid.set($any($event.target).checked)" />
+          <span class="track"><span class="thumb"></span></span>
+          <span class="switch-label">Координатная сетка</span>
+        </label>
+
+        <label class="switch">
+          <input type="checkbox" [checked]="glow()" (change)="glow.set($any($event.target).checked)" />
+          <span class="track"><span class="thumb"></span></span>
+          <span class="switch-label">Свечение портов</span>
+        </label>
+
+        <label class="switch">
+          <input type="checkbox" [checked]="labels()" (change)="labels.set($any($event.target).checked)" />
+          <span class="track"><span class="thumb"></span></span>
+          <span class="switch-label">Подписи ресурсов</span>
+        </label>
+      </section>
+
+      <section class="panel">
+        <header class="panel-head"><h2>Действия</h2></header>
+        <div class="action-grid">
+          <button type="button" class="action" (click)="randomize()">Перемешать</button>
+          <button type="button" class="action" (click)="centerScheme()">Центрировать</button>
+          <button type="button" class="action" (click)="collapseAll()">Свернуть всё</button>
+          <button type="button" class="action" (click)="expandAll()">Развернуть всё</button>
+          <button type="button" class="action danger" (click)="resetAll()">Сбросить</button>
+          <button type="button" class="action" (click)="undo()" [disabled]="!historyDepth()">Отменить</button>
+        </div>
+      </section>
+
+      @if (selected(); as node) {
+        <section class="panel inspector">
+          <header class="panel-head">
+            <h2>Инспектор</h2>
+            <button type="button" class="mini-btn" (click)="closeInspector()">Закрыть</button>
+          </header>
+
+          <div class="inspector-id">
+            <span class="chip">{{ selectedData()['code'] || node.id }}</span>
+            <span class="chip ghost">{{ node.isGroup ? 'Район' : 'Объект' }}</span>
+            @if (node.hidden) { <span class="chip warn">Скрыт</span> }
+          </div>
+
+          <div class="field">
+            <label for="nm">Название</label>
+            <input id="nm" class="text-input" type="text"
+                   [value]="selectedData()['name']"
+                   (change)="renameSelected($any($event.target).value)" />
+          </div>
+
+          @if (!node.isGroup) {
+            <div class="field">
+              <label>Водоснабжение</label>
+              <div class="seg">
+                @for (s of statuses; track s) {
+                  <button type="button"
+                          [class.active]="selectedData()['waterStatus'] === s"
+                          [attr.data-tone]="s"
+                          (click)="setStatus('waterStatus', s)">{{ statusLabel(s) }}</button>
+                }
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Электроснабжение</label>
+              <div class="seg">
+                @for (s of statuses; track s) {
+                  <button type="button"
+                          [class.active]="selectedData()['electricityStatus'] === s"
+                          [attr.data-tone]="s"
+                          (click)="setStatus('electricityStatus', s)">{{ statusLabel(s) }}</button>
+                }
+              </div>
+            </div>
+
+            <div class="field slider">
+              <label for="ld">Нагрузка <b>{{ selectedData()['load'] ?? 62 }}%</b></label>
+              <input id="ld" type="range" min="0" max="100" step="1"
+                     [value]="selectedData()['load'] ?? 62"
+                     (input)="setLoad(+$any($event.target).value)" />
+            </div>
+          }
+
+          <div class="action-grid">
+            <button type="button" class="action" (click)="focusNode(node.id)">В центр</button>
+            <button type="button" class="action" (click)="toggleHidden(node.id)">
+              {{ node.hidden ? 'Показать' : 'Скрыть' }}
+            </button>
+          </div>
+        </section>
+      }
+
+      <section class="panel">
+        <header class="panel-head">
+          <h2>Объекты</h2>
+          <span class="count">{{ matched().length }}</span>
+        </header>
+        <ul class="node-list">
+          @for (n of matched(); track n.id) {
+            <li>
+              <button type="button" class="node-row"
+                      [class.active]="selectedId() === n.id"
+                      [class.dim]="n.hidden"
+                      (click)="select(n.id)">
+                <span class="node-name">{{ n.data?.['name'] }}</span>
+                <span class="node-code">{{ n.data?.['code'] || n.id }}</span>
+                <span class="node-flags">
+                  <i class="dot"
+                     [class.ok]="n.data?.['waterStatus'] === 'normal'"
+                     [class.warn]="n.data?.['waterStatus'] === 'repair'"
+                     [class.danger]="n.data?.['waterStatus'] === 'emergency'"
+                     title="Вода"></i>
+                  <i class="dot"
+                     [class.ok]="n.data?.['electricityStatus'] === 'normal'"
+                     [class.warn]="n.data?.['electricityStatus'] === 'repair'"
+                     [class.danger]="n.data?.['electricityStatus'] === 'emergency'"
+                     title="Энергия"></i>
+                </span>
+              </button>
+            </li>
+          } @empty {
+            <li class="empty">Ничего не найдено</li>
+          }
+        </ul>
+      </section>
+    </aside>
+  </div>
 </div>

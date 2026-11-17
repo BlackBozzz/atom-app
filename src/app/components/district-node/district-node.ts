@@ -41,18 +41,17 @@ interface AnyEdge {
 export class DistrictNode implements NgDiagramGroupNodeTemplate<DistrictNodeData> {
   node = input.required<any>();
 
-  /* БЫЛО: this.node().data as DistrictNodeData  → TS2352
-     СТАЛО: нормализация через unknown + дефолты */
   readonly nodeData = computed<DistrictNodeData>(() => readDistrict(this.node().data));
   readonly isHighlighted = computed(() => Boolean(this.nodeData().isHighlighted));
   readonly isCollapsed = computed(() => Boolean(this.nodeData().isCollapsed));
 
   readonly childCount = computed(() => {
     const id = this.node().id;
-    return (this.model.nodes() as unknown as AnyNode[]).filter((n) => n.groupId === id).length;
+    return (this.modelService.nodes() as unknown as AnyNode[]).filter((n) => n.groupId === id)
+      .length;
   });
 
-  constructor(private model: NgDiagramModelService) {}
+  constructor(private modelService: NgDiagramModelService) {}
 
   async toggleCollapse(event: MouseEvent): Promise<void> {
     event.stopPropagation();
@@ -61,20 +60,19 @@ export class DistrictNode implements NgDiagramGroupNodeTemplate<DistrictNodeData
     const current = this.node();
     const data = this.nodeData();
     const next = !this.isCollapsed();
+    const expandedSize = data.expandedSize ?? current.size ?? { width: 700, height: 420 };
 
-    const currentSize = current.size ?? { width: 680, height: 390 };
-    const expandedSize = data.expandedSize ?? currentSize;
-
-    const allNodes = this.model.nodes() as unknown as AnyNode[];
-    const childIds = new Set(allNodes.filter((n) => n.groupId === current.id).map((n) => n.id));
-    const allEdges = this.model.edges() as unknown as AnyEdge[];
+    const nodes = this.modelService.nodes() as unknown as AnyNode[];
+    const childIds = new Set(nodes.filter((n) => n.groupId === current.id).map((n) => n.id));
+    const edges = this.modelService.edges() as unknown as AnyEdge[];
 
     if (next) {
       if (childIds.size) {
-        await this.model.updateNodes([...childIds].map((id) => ({ id, hidden: true })));
+        await this.modelService.updateNodes([...childIds].map((id) => ({ id, hidden: true })));
       }
 
-      const redirect = allEdges
+      // Внешние связи: подменяем только ID узла, порт остаётся прежним
+      const redirect = edges
         .filter((e) => {
           const s = childIds.has(e.source);
           const t = childIds.has(e.target);
@@ -82,7 +80,7 @@ export class DistrictNode implements NgDiagramGroupNodeTemplate<DistrictNodeData
         })
         .map((e) => {
           const s = childIds.has(e.source);
-          const meta = (e.data ?? {}) as unknown as EdgeRedirectMeta;
+          const meta = (e.data ?? {}) as EdgeRedirectMeta;
           return {
             id: e.id,
             source: s ? current.id : e.source,
@@ -96,17 +94,18 @@ export class DistrictNode implements NgDiagramGroupNodeTemplate<DistrictNodeData
           };
         });
 
-      const internal = allEdges
+      const internal = edges
         .filter((e) => childIds.has(e.source) && childIds.has(e.target))
         .map((e) => ({ id: e.id, hidden: true }));
 
-      const patch = [...redirect, ...internal];
-      if (patch.length) await this.model.updateEdges(patch as any);
+      if (redirect.length || internal.length) {
+        await this.modelService.updateEdges([...redirect, ...internal] as any);
+      }
     } else {
-      const restore = allEdges
+      const restore = edges
         .filter((e) => (e.data as EdgeRedirectMeta | undefined)?.redirected)
         .map((e) => {
-          const meta = (e.data ?? {}) as unknown as EdgeRedirectMeta;
+          const meta = (e.data ?? {}) as EdgeRedirectMeta;
           return {
             id: e.id,
             source: meta.originalSource ?? e.source,
@@ -120,19 +119,19 @@ export class DistrictNode implements NgDiagramGroupNodeTemplate<DistrictNodeData
           };
         });
 
-      const internal = allEdges
+      const internal = edges
         .filter((e) => childIds.has(e.source) && childIds.has(e.target))
         .map((e) => ({ id: e.id, hidden: false }));
 
-      const patch = [...restore, ...internal];
-      if (patch.length) await this.model.updateEdges(patch as any);
-
+      if (restore.length || internal.length) {
+        await this.modelService.updateEdges([...restore, ...internal] as any);
+      }
       if (childIds.size) {
-        await this.model.updateNodes([...childIds].map((id) => ({ id, hidden: false })));
+        await this.modelService.updateNodes([...childIds].map((id) => ({ id, hidden: false })));
       }
     }
 
-    await this.model.updateNode(current.id, {
+    await this.modelService.updateNode(current.id, {
       size: next ? { width: 300, height: 56 } : expandedSize,
       data: { ...data, isCollapsed: next, expandedSize },
     });

@@ -9,6 +9,7 @@ import {
   LayoutSettings,
   LayoutStats,
 } from './layout.types';
+import { BoundsNode, normalizeGroupBounds } from './group-bounds';
 
 interface AnyNode {
   id: string;
@@ -93,9 +94,20 @@ export class DiagramLayoutService {
     try {
       const result = this.preview(settings, nodeWidth);
       await this.commit(result);
+      // КРИТИЧНО: контейнеры приводим в соответствие детям
+      await this.syncBounds(settings.groupPadding);
       return result;
     } finally {
       this.busy.set(false);
+    }
+  }
+
+  /** Пересчёт контейнеров районов от фактических позиций детей. */
+  async syncBounds(padding = 28): Promise<void> {
+    const nodes = this.model.nodes() as unknown as BoundsNode[];
+    const patches = normalizeGroupBounds(nodes, { padding, headerHeight: 46 });
+    if (patches.length) {
+      await this.model.updateNodes(patches as any);
     }
   }
 

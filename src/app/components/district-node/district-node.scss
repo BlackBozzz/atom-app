@@ -148,3 +148,44 @@
   .gp-water { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-water) 18%, transparent); }
   .gp-power { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-power) 18%, transparent); }
 }
+
+.district-count {
+  margin-left: auto;
+  min-width: 22px;
+  padding: 1px 7px;
+  border-radius: 99px;
+  font-size: 10.5px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  color: var(--node-subtext, #475569);
+  background: var(--canvas-bg, #f1f5f9);
+  border: 1px solid var(--node-border, #cbd5e1);
+}
+
+/* Шапка фиксированной высоты — та же константа, что headerHeight в group-bounds */
+.district-header { height: 46px; box-sizing: border-box; flex-shrink: 0; }
+
+.gp {
+  --ngd-port-size: 12px;
+  --ngd-port-border-size: 2px;
+  --ngd-port-border-radius: 50%;
+  --ngd-port-border-color: var(--node-bg, #ffffff);
+  cursor: crosshair;
+}
+.gp-water { --ngd-port-background-color: var(--port-water-color, #0284c7); }
+.gp-power { --ngd-port-background-color: var(--port-power-color, #ca8a04); }
+
+.gp-in  { transform: translate(-50%, -50%); }
+.gp-out { transform: translate(50%, -50%); }
+
+.gp-in.gp-water,  .gp-out.gp-water  { margin-top: -18px; }
+.gp-in.gp-power,  .gp-out.gp-power  { margin-top: 18px; }
+
+:host.is-collapsed {
+  .gp-in.gp-water, .gp-in.gp-power,
+  .gp-out.gp-water, .gp-out.gp-power { margin-top: 0; }
+  .gp-water.gp-in  { transform: translate(-50%, calc(-50% - 8px)); }
+  .gp-power.gp-in  { transform: translate(-50%, calc(-50% + 8px)); }
+  .gp-water.gp-out { transform: translate(50%, calc(-50% - 8px)); }
+  .gp-power.gp-out { transform: translate(50%, calc(-50% + 8px)); }
+}

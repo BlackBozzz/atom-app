@@ -9,10 +9,7 @@
       [attr.aria-expanded]="!isCollapsed()"
       [title]="isCollapsed() ? 'Развернуть район' : 'Свернуть район'"
     >
-      <svg viewBox="0 0 16 16" aria-hidden="true">
-        <path d="M5 3l6 5-6 5" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round" />
-      </svg>
+      {{ isCollapsed() ? '▶' : '▼' }}
     </button>
 
     @if (nodeData().iconId) {

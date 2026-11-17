@@ -1,6 +1,40 @@
-@import 'primeicons/primeicons.css';
 @import 'ng-diagram/styles.css';
 
-* { box-sizing: border-box; }
-html, body { height: 100%; margin: 0; }
-body { font-size: 14px; }
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #070c16;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+app-root,
+app-factory-page {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: #0f1826; }
+::-webkit-scrollbar-thumb {
+  border-radius: 99px;
+  background: linear-gradient(180deg, #22d3ee, #a78bfa);
+  border: 2px solid #0f1826;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #a78bfa, #fbbf24);
+}
+
+:focus-visible {
+  outline: 2px solid #a78bfa;
+  outline-offset: 2px;
+}

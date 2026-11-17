@@ -31,6 +31,7 @@ import {
 import { buildSeededModel } from './factory-seed';
 import { readData } from '../../service/node-data.util';
 import { DistrictNode } from '../../components/district-node/district-node';
+import { BoundsNode, normalizeGroupBounds } from '../../service/group-bounds';
 
 interface AnyNode {
   id: string;
@@ -179,12 +180,19 @@ export class FactoryPage {
 
   constructor() {
     afterNextRender(() => {
+      // 1. Контейнеры сразу подгоняем под детей — до первого кадра
+      void this.fitGroups();
       this.refresh();
+
+      // 2. Полная раскладка после того, как DOM отрисован
       void this.relayout(0);
+
+      // 3. Контрольный проход: ng-diagram измерил реальные размеры карточек
       const t = setTimeout(() => {
         this.refresh();
-        void this.relayout(0);
-      }, 260);
+        void this.relayout(0).then(() => this.fitGroups());
+      }, 280);
+
       this.destroyRef.onDestroy(() => clearTimeout(t));
     });
 
@@ -193,6 +201,12 @@ export class FactoryPage {
       if (this.toastTimer) clearTimeout(this.toastTimer);
       if (this.refreshTimer) clearTimeout(this.refreshTimer);
     });
+  }
+
+  private async fitGroups(): Promise<void> {
+    const nodes = this.model.nodes() as unknown as BoundsNode[];
+    const patches = normalizeGroupBounds(nodes, { padding: 28, headerHeight: 46 });
+    if (patches.length) await this.model.updateNodes(patches as any);
   }
 
   /* ----------------служебное---------------- */

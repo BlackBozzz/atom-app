@@ -7,10 +7,10 @@ export interface DistrictNodeData {
   code?: string;
 }
 
-/** Метаданные ребра при перенаправлении на группу. */
+/** Метаданные ребра при перенаправлении на район. */
 export interface EdgeRedirectMeta {
+  redirected?: boolean;
   originalSource?: string;
   originalTarget?: string;
-  redirected?: boolean;
   [key: string]: unknown;
 }
