@@ -1,5 +1,6 @@
 @import 'primeicons/primeicons.css';
+@import 'ng-diagram/styles.css';
 
 * { box-sizing: border-box; }
-html, body { margin: 0; min-width: 350px; min-height: 100%; }
+html, body { height: 100%; margin: 0; }
 body { font-size: 14px; }

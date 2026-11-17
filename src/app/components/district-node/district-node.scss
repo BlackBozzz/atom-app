@@ -1,0 +1,75 @@
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+}
+
+.district-group {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  background-color: var(--district-bg, rgba(241, 245, 249, 0.65));
+  border: 2px dashed var(--node-border, #94a3b8);
+  border-radius: 12px;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+
+  :host.is-highlighted & {
+    border-color: var(--diagram-highlight-color, #2563eb);
+  }
+}
+
+.district-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background-color: var(--node-bg, #ffffff);
+  border-bottom: 1px solid var(--node-border, #cbd5e1);
+  border-radius: 10px 10px 0 0;
+  cursor: grab;
+}
+
+.collapse-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: transparent;
+  border: 1px solid var(--node-border, #cbd5e1);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 10px;
+  color: var(--node-text, #1e293b);
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  padding: 0;
+
+  &:hover {
+    background-color: var(--canvas-bg, #f1f5f9);
+    border-color: var(--diagram-highlight-color, #2563eb);
+    color: var(--diagram-highlight-color, #2563eb);
+  }
+}
+
+.district-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--node-icon-color, #2563eb);
+  flex-shrink: 0;
+}
+
+.district-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--node-text, #1e293b);
+  user-select: none;
+}
+
+.district-body {
+  flex: 1;
+  position: relative;
+}

@@ -1,0 +1,78 @@
+<div class="infra-card">
+  <!-- Шапка: Иконка сверху, название снизу -->
+  <div class="infra-header">
+    <div class="infra-icon-wrapper">
+      <svg class="infra-icon" aria-hidden="true">
+        <use [attr.href]="'assets/icons.svg#' + (nodeData().iconId || 'infra-station-icon')"></use>
+      </svg>
+    </div>
+    <span class="infra-title">{{ nodeData().name }}</span>
+  </div>
+
+  <!-- Ресурсы и порты (вход слева, выход справа) -->
+  <div class="infra-ports">
+    <!-- Водоснабжение -->
+    <div class="port-row">
+      <ng-diagram-port
+        id="port-water-in"
+        type="target"
+        side="left"
+        class="port-badge port-badge--left port-badge--water"
+      />
+
+      <span class="port-label">Водоснабжение</span>
+
+      <div class="status-group" role="group" aria-label="Статус водоснабжения">
+        @for (item of statusList; track item.id) {
+          <svg
+            class="status-icon"
+            [class]="'status-icon status-icon--' + item.id"
+            [class.is-active]="nodeData().waterStatus === item.id"
+            [attr.title]="item.label"
+          >
+            <use [attr.href]="'assets/icons.svg#' + item.iconId"></use>
+          </svg>
+        }
+      </div>
+
+      <ng-diagram-port
+        id="port-water-out"
+        type="source"
+        side="right"
+        class="port-badge port-badge--right port-badge--water"
+      />
+    </div>
+
+    <!-- Электроснабжение -->
+    <div class="port-row">
+      <ng-diagram-port
+        id="port-electricity-in"
+        type="target"
+        side="left"
+        class="port-badge port-badge--left port-badge--power"
+      />
+
+      <span class="port-label">Электроснабжение</span>
+
+      <div class="status-group" role="group" aria-label="Статус электроснабжения">
+        @for (item of statusList; track item.id) {
+          <svg
+            class="status-icon"
+            [class]="'status-icon status-icon--' + item.id"
+            [class.is-active]="nodeData().electricityStatus === item.id"
+            [attr.title]="item.label"
+          >
+            <use [attr.href]="'assets/icons.svg#' + item.iconId"></use>
+          </svg>
+        }
+      </div>
+
+      <ng-diagram-port
+        id="port-electricity-out"
+        type="source"
+        side="right"
+        class="port-badge port-badge--right port-badge--power"
+      />
+    </div>
+  </div>
+</div>

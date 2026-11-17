@@ -1,0 +1,37 @@
+<ng-diagram-node-resize-adornment>
+  <div
+    class="district-group"
+    ngDiagramGroupHighlighted
+    ngDiagramNodeSelected
+    [node]="node()"
+  >
+    <div class="district-header">
+      <!-- Кнопка сворачивания/разворачивания -->
+      <button
+        class="collapse-btn"
+        (click)="toggleCollapse($event)"
+        [title]="isCollapsed() ? 'Развернуть' : 'Свернуть'"
+      >
+        {{ isCollapsed() ? '▶' : '▼' }}
+      </button>
+
+      @if (nodeData().iconId) {
+        <svg class="district-icon" aria-hidden="true">
+          <use [attr.href]="'#' + nodeData().iconId"></use>
+        </svg>
+      }
+
+      <span class="district-title">{{ nodeData().name }}</span>
+    </div>
+
+    @if (!isCollapsed()) {
+      <div class="district-body"></div>
+    }
+
+    <!-- Порты группы. ID намеренно совпадают с ID портов дочерних узлов -->
+    <ng-diagram-port id="port-left" side="left" type="both" />
+    <ng-diagram-port id="port-right" side="right" type="both" />
+    <ng-diagram-port id="port-top" side="top" type="both" />
+    <ng-diagram-port id="port-bottom" side="bottom" type="both" />
+  </div>
+</ng-diagram-node-resize-adornment>
