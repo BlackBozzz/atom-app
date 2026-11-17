@@ -34,6 +34,7 @@ export class FactoryPage {
         id: 'group-1',
         isGroup: true,
         type: 'district',
+        autoSize: false,
         position: { x: 100, y: 80 },
         size: { width: 900, height: 500 },
         data: {
@@ -56,8 +57,7 @@ export class FactoryPage {
         data: {
           name: 'Только вход воды',
           iconId: 'icon-building',
-          waterStatus: 'normal',
-          electricityStatus: 'normal',
+          status: { water: 'normal', electricity: 'normal' },
         } as InfrastructureNodeData,
       },
 
@@ -70,8 +70,7 @@ export class FactoryPage {
         data: {
           name: 'Только выход воды',
           iconId: 'icon-building',
-          waterStatus: 'emergency',
-          electricityStatus: 'normal',
+          status: { water: 'emergency', electricity: 'normal' },
         } as InfrastructureNodeData,
       },
 
@@ -84,8 +83,7 @@ export class FactoryPage {
         data: {
           name: 'Только вход эл-ва',
           iconId: 'icon-building',
-          waterStatus: 'normal',
-          electricityStatus: 'repair',
+          status: { water: 'normal', electricity: 'repair' },
         } as InfrastructureNodeData,
       },
 
@@ -98,8 +96,7 @@ export class FactoryPage {
         data: {
           name: 'Только выход эл-ва',
           iconId: 'icon-building',
-          waterStatus: 'normal',
-          electricityStatus: 'normal',
+          status: { water: 'normal', electricity: 'normal' },
         } as InfrastructureNodeData,
       },
 
@@ -112,8 +109,7 @@ export class FactoryPage {
         data: {
           name: 'Транзит воды',
           iconId: 'icon-building',
-          waterStatus: 'normal',
-          electricityStatus: 'normal',
+          status: { water: 'normal', electricity: 'normal' },
         } as InfrastructureNodeData,
       },
 
@@ -126,8 +122,7 @@ export class FactoryPage {
         data: {
           name: 'Транзит эл-ва',
           iconId: 'icon-building',
-          waterStatus: 'normal',
-          electricityStatus: 'emergency',
+          status: { water: 'normal', electricity: 'emergency' },
         } as InfrastructureNodeData,
       },
 
@@ -140,8 +135,7 @@ export class FactoryPage {
         data: {
           name: 'Все порты заняты',
           iconId: 'icon-building',
-          waterStatus: 'repair',
-          electricityStatus: 'emergency',
+          status: { water: 'repair', electricity: 'emergency' },
         } as InfrastructureNodeData,
       },
 
@@ -154,8 +148,7 @@ export class FactoryPage {
         data: {
           name: 'Свободный узел',
           iconId: 'icon-building',
-          waterStatus: 'normal',
-          electricityStatus: 'normal',
+          status: { water: 'normal', electricity: 'normal' },
         } as InfrastructureNodeData,
       },
 
@@ -169,8 +162,7 @@ export class FactoryPage {
         data: {
           name: 'Водозабор',
           iconId: 'icon-building',
-          waterStatus: 'normal',
-          electricityStatus: 'normal',
+          status: { water: 'normal', electricity: 'normal' },
         } as InfrastructureNodeData,
       },
       {
@@ -180,8 +172,7 @@ export class FactoryPage {
         data: {
           name: 'Подстанция',
           iconId: 'icon-building',
-          waterStatus: 'normal',
-          electricityStatus: 'normal',
+          status: { water: 'normal', electricity: 'normal' },
         } as InfrastructureNodeData,
       },
       {
@@ -191,8 +182,7 @@ export class FactoryPage {
         data: {
           name: 'Потребитель',
           iconId: 'icon-building',
-          waterStatus: 'normal',
-          electricityStatus: 'normal',
+          status: { water: 'normal', electricity: 'normal' },
         } as InfrastructureNodeData,
       },
     ],

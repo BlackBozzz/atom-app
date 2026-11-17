@@ -1,23 +1,18 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import {
   NgDiagramGroupHighlightedDirective,
-  NgDiagramGroupNodeTemplate,
-  NgDiagramModelService,
   NgDiagramNodeResizeAdornmentComponent,
-  NgDiagramNodeSelectedDirective, NgDiagramPortComponent,
+  NgDiagramNodeSelectedDirective,
+  NgDiagramModelService,
+  NgDiagramPortComponent,
+  type GroupNode,
+  type NgDiagramGroupNodeTemplate,
 } from 'ng-diagram';
 import { DistrictNodeData } from './district-node.model';
-
-// Вспомогательный тип, чтобы TypeScript не ругался на кастомные поля в data ребра
-type EdgeDataWithHistory = Record<string, any> & {
-  originalSource?: string;
-  originalTarget?: string;
-};
+import { collapseDistrictEdges, expandDistrictEdges } from './district-connections';
 
 @Component({
   selector: 'app-district-node',
-  templateUrl: './district-node.html',
-  styleUrl: './district-node.scss',
   standalone: true,
   imports: [
     NgDiagramNodeResizeAdornmentComponent,
@@ -25,110 +20,63 @@ type EdgeDataWithHistory = Record<string, any> & {
     NgDiagramNodeSelectedDirective,
     NgDiagramPortComponent,
   ],
-  host: {
-    '[class.is-highlighted]': 'isHighlighted()',
-  },
+  templateUrl: './district-node.html',
+  styleUrl: './district-node.scss',
+  host: { '[class.is-highlighted]': 'nodeData().isHighlighted === true' },
 })
 export class DistrictNode implements NgDiagramGroupNodeTemplate<DistrictNodeData> {
-  node = input.required<any>();
-  nodeData = computed(() => this.node().data as DistrictNodeData);
-  isHighlighted = computed(() => Boolean(this.nodeData().isHighlighted));
-  isCollapsed = computed(() => Boolean(this.nodeData().isCollapsed));
-
-  constructor(private modelService: NgDiagramModelService) {}
+  private readonly model = inject(NgDiagramModelService);
+  readonly node = input.required<GroupNode<DistrictNodeData>>();
+  readonly nodeData = computed(() => this.node().data);
+  readonly isCollapsed = computed(() => this.nodeData().isCollapsed === true);
+  readonly districtIconPath = computed(() =>
+    this.nodeData().iconId === 'icon-factory'
+      ? 'M3 21V10l6-3v4l6-3v4h6v9H3zm3-7v4h3v-4H6zm6 0v4h3v-4h-3z'
+      : 'M3 21h18v-2H3v2zm0-4h18v-2H3v2zm0-4h18v-2H3v2zm0-4h18V7H3v2zm0-6v2h18V3H3z'
+  );
+  busy = false;
 
   async toggleCollapse(event: MouseEvent): Promise<void> {
-    event.stopPropagation(); // Предотвращаем начало перетаскивания при клике
+    event.stopPropagation();
+    if (this.busy) return;
+    this.busy = true;
 
-    const currentNode = this.node();
-    const data = this.nodeData();
-    const nextCollapsed = !this.isCollapsed();
+    try {
+      const group = this.node();
+      const data = this.nodeData();
+      const children = this.model.getChildrenNested(group.id);
+      const childIds = new Set(children.map((child) => child.id));
 
-    const currentSize = currentNode.size ?? { width: 680, height: 390 };
-    const expandedSize = data.expandedSize ?? currentSize;
+      if (!this.isCollapsed()) {
+        const updates = collapseDistrictEdges(this.model.edges(), group.id, childIds);
+        const visibleChildIds = children.filter((child) => !child.hidden).map((child) => child.id);
 
-    const allNodes = this.modelService.nodes();
-    const childIds = new Set(allNodes.filter((n) => n.groupId === currentNode.id).map((n) => n.id));
+        // Порты района появляются до переназначения связей.
+        await this.model.updateNode(group.id, {
+          size: { width: 250, height: 84 },
+          data: { ...data, isCollapsed: true, expandedSize: group.size ?? data.expandedSize ?? { width: 680, height: 390 }, visibleChildIds },
+        }, { waitForMeasurements: true });
+        if (updates.length) await this.model.updateEdges(updates);
+        if (visibleChildIds.length) {
+          await this.model.updateNodes(visibleChildIds.map((id) => ({ id, hidden: true })));
+        }
+      } else {
+        const updates = expandDistrictEdges(this.model.edges(), group.id);
+        const visibleChildIds = data.visibleChildIds ?? children.map((child) => child.id);
 
-    const allEdges = this.modelService.edges();
-
-    if (nextCollapsed) {
-      // 1. Скрываем дочерние узлы
-      if (childIds.size > 0) {
-        await this.modelService.updateNodes(
-          Array.from(childIds).map((id) => ({ id, hidden: true })),
-        );
-      }
-
-      // 2. Перенаправляем внешние связи на группу
-      const edgesToUpdate = allEdges
-        .filter((edge) => {
-          const isSourceChild = childIds.has(edge.source);
-          const isTargetChild = childIds.has(edge.target);
-          // Нас интересуют только связи, где один конец внутри, а другой снаружи
-          return (isSourceChild || isTargetChild) && !(isSourceChild && isTargetChild);
-        })
-        .map((edge) => {
-          const isSourceChild = childIds.has(edge.source);
-          const edgeData = edge.data as EdgeDataWithHistory;
-
-          return {
-            id: edge.id,
-            source: isSourceChild ? currentNode.id : edge.source,
-            target: !isSourceChild ? currentNode.id : edge.target,
-            // Порт не меняем! Он совпадет с портом группы
-            data: {
-              ...edgeData,
-              originalSource: isSourceChild ? edge.source : edgeData.originalSource,
-              originalTarget: !isSourceChild ? edge.target : edgeData.originalTarget,
-            },
-          };
+        if (visibleChildIds.length) {
+          await this.model.updateNodes(visibleChildIds.map((id) => ({ id, hidden: false })));
+        }
+        if (updates.length) await this.model.updateEdges(updates);
+        await this.model.updateNode(group.id, {
+          size: data.expandedSize ?? { width: 680, height: 390 },
+          data: { ...data, isCollapsed: false, visibleChildIds: undefined },
         });
-
-      if (edgesToUpdate.length > 0) {
-        await this.modelService.updateEdges(edgesToUpdate);
       }
-    } else {
-      // 3. Разворачивание: восстанавливаем оригинальные связи
-      const edgesToRestore = allEdges
-        .filter((edge) => {
-          const edgeData = edge.data as EdgeDataWithHistory;
-          return edgeData.originalSource || edgeData.originalTarget;
-        })
-        .map((edge) => {
-          const edgeData = edge.data as EdgeDataWithHistory;
-          return {
-            id: edge.id,
-            source: edgeData.originalSource || edge.source,
-            target: edgeData.originalTarget || edge.target,
-            data: {
-              ...edgeData,
-              originalSource: undefined,
-              originalTarget: undefined,
-            },
-          };
-        });
-
-      if (edgesToRestore.length > 0) {
-        await this.modelService.updateEdges(edgesToRestore);
-      }
-
-      // 4. Показываем дочерние узлы
-      if (childIds.size > 0) {
-        await this.modelService.updateNodes(
-          Array.from(childIds).map((id) => ({ id, hidden: false })),
-        );
-      }
+    } catch (error) {
+      console.error('Не удалось изменить состояние района', error);
+    } finally {
+      this.busy = false;
     }
-
-    // 5. Обновляем размер и состояние самой группы
-    await this.modelService.updateNode(currentNode.id, {
-      size: nextCollapsed ? { width: 280, height: 44 } : expandedSize,
-      data: {
-        ...data,
-        isCollapsed: nextCollapsed,
-        expandedSize,
-      },
-    });
   }
 }

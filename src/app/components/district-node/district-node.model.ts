@@ -4,4 +4,5 @@ export interface DistrictNodeData {
   isHighlighted?: boolean;
   isCollapsed?: boolean;
   expandedSize?: { width: number; height: number };
+  visibleChildIds?: string[];
 }

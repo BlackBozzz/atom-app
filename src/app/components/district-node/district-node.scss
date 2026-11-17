@@ -2,157 +2,66 @@
   display: block;
   width: 100%;
   height: 100%;
-  border-radius: 12px;
 }
 
 .district-group {
-  display: flex;
-  flex-direction: column;
+  position: relative;
   width: 100%;
   height: 100%;
-  box-sizing: border-box;
-  background-color: var(--district-bg, rgba(241, 245, 249, 0.65));
-  border: 2px dashed var(--node-border, #94a3b8);
-  border-radius: 12px;
-  transition: border-color 0.2s ease, background-color 0.2s ease;
-
-  :host.is-highlighted & {
-    border-color: var(--diagram-highlight-color, #2563eb);
-  }
+  display: flex;
+  flex-direction: column;
+  border: 1px dashed #94a3b8;
+  border-radius: 8px;
+  background: #f1f5f980;
+  color: #334155;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
 }
+
+:host.is-highlighted .district-group { border-color: #2563eb; }
 
 .district-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  background-color: var(--node-bg, #ffffff);
-  border-bottom: 1px solid var(--node-border, #cbd5e1);
-  border-radius: 10px 10px 0 0;
-  cursor: grab;
+  gap: 7px;
+  flex: 0 0 38px;
+  padding: 0 10px;
+  border-bottom: 1px solid #e2e8f0;
+  border-radius: 7px 7px 0 0;
+  background: #fff;
 }
 
-.collapse-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.collapse-button {
   width: 22px;
   height: 22px;
-  background: transparent;
-  border: 1px solid var(--node-border, #cbd5e1);
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 10px;
-  color: var(--node-text, #1e293b);
-  flex-shrink: 0;
-  transition: all 0.2s ease;
   padding: 0;
-
-  &:hover {
-    background-color: var(--canvas-bg, #f1f5f9);
-    border-color: var(--diagram-highlight-color, #2563eb);
-    color: var(--diagram-highlight-color, #2563eb);
-  }
-}
-
-.district-icon {
-  width: 20px;
-  height: 20px;
-  color: var(--node-icon-color, #2563eb);
-  flex-shrink: 0;
-}
-
-.district-title {
-  font-weight: 600;
-  font-size: 14px;
-  color: var(--node-text, #1e293b);
-  user-select: none;
-}
-
-.district-body {
-  flex: 1;
-  position: relative;
-}
-
-/* --- Стилизация портов группы --- */
-::ng-deep .port-water {
-  --ngd-port-size: 12px;
-  --ngd-port-background-color: #0284c7; /* Голубой для воды */
-  --ngd-port-border-size: 2px;
-  --ngd-port-border-color: var(--district-bg, rgba(241, 245, 249, 0.8));
-  --ngd-port-border-radius: 50%;
-  /* Смещаем на 50% влево, чтобы центр точки был ровно на границе */
-  transform: translate(-50%, -50%);
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: #fff;
   cursor: pointer;
 }
 
-::ng-deep .port-power {
-  --ngd-port-size: 12px;
-  --ngd-port-background-color: #ca8a04; /* Оранжевый для электричества */
+.district-icon { width: 18px; height: 18px; color: #475569; }
+.district-title { font-size: 12px; font-weight: 600; }
+.district-body { flex: 1; }
+
+.district-resource {
+  display: flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 16px;
+  font-size: 11px;
+  background: #fff;
+}
+.district-resource + .district-resource { border-top: 1px solid #e2e8f0; }
+
+.district-port {
+  --ngd-port-size: 10px;
   --ngd-port-border-size: 2px;
-  --ngd-port-border-color: var(--district-bg, rgba(241, 245, 249, 0.8));
-  --ngd-port-border-radius: 50%;
-  /* Смещаем на 50% вправо, чтобы центр точки был ровно на границе */
-  transform: translate(50%, -50%);
-  cursor: pointer;
+  --ngd-port-border-color: #fff;
 }
-
-/* Подсветка портов при наведении на группу */
-.district-group:hover ::ng-deep .port-water,
-.district-group:hover ::ng-deep .port-power {
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
-  transform: translate(-50%, -50%) scale(1.2); /* Для воды */
-}
-
-.district-group:hover ::ng-deep .port-power {
-  transform: translate(50%, -50%) scale(1.2); /* Для энергии */
-}
-
-/* Порты группы — входы слева */
-::ng-deep .port-water-in,
-::ng-deep .port-power-in {
-  --ngd-port-size: 12px;
-  --ngd-port-border-size: 2px;
-  --ngd-port-border-color: var(--district-bg, rgba(241, 245, 249, 0.8));
-  --ngd-port-border-radius: 50%;
-  transform: translate(-50%, -50%);
-  cursor: pointer;
-}
-
-::ng-deep .port-water-in {
-  --ngd-port-background-color: #0284c7; /* Голубой для воды */
-}
-
-::ng-deep .port-power-in {
-  --ngd-port-background-color: #ca8a04; /* Оранжевый для электричества */
-}
-
-/* Порты группы — выходы справа */
-::ng-deep .port-water-out,
-::ng-deep .port-power-out {
-  --ngd-port-size: 12px;
-  --ngd-port-border-size: 2px;
-  --ngd-port-border-color: var(--district-bg, rgba(241, 245, 249, 0.8));
-  --ngd-port-border-radius: 50%;
-  transform: translate(50%, -50%);
-  cursor: pointer;
-}
-
-::ng-deep .port-water-out {
+.district-port--water {
   --ngd-port-background-color: #0284c7;
 }
-
-::ng-deep .port-power-out {
-  --ngd-port-background-color: #ca8a04;
-}
-
-/* Подсветка при наведении */
-.district-group:hover ::ng-deep .port-water-in,
-.district-group:hover ::ng-deep .port-water-out {
-  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.3);
-}
-
-.district-group:hover ::ng-deep .port-power-in,
-.district-group:hover ::ng-deep .port-power-out {
-  box-shadow: 0 0 0 3px rgba(202, 138, 4, 0.3);
+.district-port--power {
+  --ngd-port-background-color: #d97706;
 }

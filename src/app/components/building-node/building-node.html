@@ -1,78 +1,60 @@
-<div class="infra-card">
-  <!-- Шапка: Иконка сверху, название снизу -->
-  <div class="infra-header">
-    <div class="infra-icon-wrapper">
-      <svg class="infra-icon" aria-hidden="true">
-        <use [attr.href]="'assets/icons.svg#' + (nodeData().iconId || 'infra-station-icon')"></use>
-      </svg>
-    </div>
-    <span class="infra-title">{{ nodeData().name }}</span>
-  </div>
+<div class="building-node-card">
+  <header class="building-node-header" [title]="nodeData().name">
+    <svg class="building-node-icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="currentColor" [attr.d]="buildingIconPath()" />
+    </svg>
+    <span class="building-node-name">{{ nodeData().name }}</span>
+  </header>
 
-  <!-- Ресурсы и порты (вход слева, выход справа) -->
-  <div class="infra-ports">
-    <!-- Водоснабжение -->
-    <div class="port-row">
-      <ng-diagram-port
-        id="port-water-in"
-        type="target"
-        side="left"
-        class="port-badge port-badge--left port-badge--water"
-      />
+  <div class="building-node-resources">
+    @for (resource of resources; track resource.id) {
+      <div class="building-node-resource" [class.building-node-resource--water]="resource.id === 'water'">
+        <ng-diagram-port
+          class="building-node-port building-node-port--in"
+          type="target"
+          side="left"
+          [id]="resource.input"
+        />
 
-      <span class="port-label">Водоснабжение</span>
+        <div class="building-node-resource-title">{{ resource.label }}</div>
+        <div class="building-node-statuses">
+          @for (item of statuses; track item.id) {
+            <svg
+              class="building-node-status-icon"
+              viewBox="0 0 24 24"
+              role="img"
+              [class.status-normal]="item.id === 'normal'"
+              [class.status-emergency]="item.id === 'emergency'"
+              [class.status-repair]="item.id === 'repair'"
+              [class.status-active]="status(resource.id) === item.id"
+              [attr.aria-label]="item.label"
+              [attr.title]="item.label"
+            >
+              @switch (item.id) {
+                @case ('normal') {
+                  <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2" />
+                  <path d="m7.5 12 3 3 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                }
+                @case ('emergency') {
+                  <path d="M12 3 22 20H2L12 3Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+                  <path d="M12 9v5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                  <circle cx="12" cy="17" r="1" fill="currentColor" />
+                }
+                @case ('repair') {
+                  <path d="m15 4 5 5M14 5l2-2 6 6-2 2M15 10 6 19a2 2 0 0 1-3-3l9-9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                }
+              }
+            </svg>
+          }
+        </div>
 
-      <div class="status-group" role="group" aria-label="Статус водоснабжения">
-        @for (item of statusList; track item.id) {
-          <svg
-            class="status-icon"
-            [class]="'status-icon status-icon--' + item.id"
-            [class.is-active]="nodeData().waterStatus === item.id"
-            [attr.title]="item.label"
-          >
-            <use [attr.href]="'assets/icons.svg#' + item.iconId"></use>
-          </svg>
-        }
+        <ng-diagram-port
+          class="building-node-port building-node-port--out"
+          type="source"
+          side="right"
+          [id]="resource.output"
+        />
       </div>
-
-      <ng-diagram-port
-        id="port-water-out"
-        type="source"
-        side="right"
-        class="port-badge port-badge--right port-badge--water"
-      />
-    </div>
-
-    <!-- Электроснабжение -->
-    <div class="port-row">
-      <ng-diagram-port
-        id="port-electricity-in"
-        type="target"
-        side="left"
-        class="port-badge port-badge--left port-badge--power"
-      />
-
-      <span class="port-label">Электроснабжение</span>
-
-      <div class="status-group" role="group" aria-label="Статус электроснабжения">
-        @for (item of statusList; track item.id) {
-          <svg
-            class="status-icon"
-            [class]="'status-icon status-icon--' + item.id"
-            [class.is-active]="nodeData().electricityStatus === item.id"
-            [attr.title]="item.label"
-          >
-            <use [attr.href]="'assets/icons.svg#' + item.iconId"></use>
-          </svg>
-        }
-      </div>
-
-      <ng-diagram-port
-        id="port-electricity-out"
-        type="source"
-        side="right"
-        class="port-badge port-badge--right port-badge--power"
-      />
-    </div>
+    }
   </div>
 </div>

@@ -1,139 +1,55 @@
 :host {
   display: block;
-  width: 260px; // Фиксируем аккуратную ширину карточки
-  border-radius: 10px;
-  box-sizing: border-box;
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
-
-  &.is-highlighted .infra-card {
-    border-color: var(--diagram-highlight-color, #2563eb);
-    box-shadow: 0 0 0 3px var(--diagram-highlight-glow, rgba(37, 99, 235, 0.25));
-  }
+  width: 250px;
 }
 
-/* Основной корпус карточки с рамкой и фоном */
-.infra-card {
-  background-color: var(--node-bg, #ffffff);
-  color: var(--node-text, #1e293b);
-  border: 1px solid var(--node-border, #cbd5e1);
-  border-radius: 10px;
-  padding: 12px 14px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-  box-sizing: border-box;
-}
-
-/* Шапка: иконка здания сверху, название снизу */
-.infra-header {
+.building-node-card {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 6px;
-  padding-bottom: 10px;
-  margin-bottom: 10px;
-  border-bottom: 1px solid var(--node-divider, #e2e8f0);
-}
-
-.infra-icon-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 100%;
+  overflow: visible;
+  color: #334155;
+  background: #fff;
+  border: 1px solid #cbd5e1;
   border-radius: 8px;
-  background-color: var(--canvas-bg, #f1f5f9);
-  border: 1px solid var(--node-border, #cbd5e1);
+  box-shadow: 0 2px 6px #0f172a12;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
-.infra-icon {
-  width: 22px;
-  height: 22px;
-  display: block;
-  color: var(--node-icon-color, #2563eb);
-}
+:host.is-highlighted .building-node-card { border-color: #2563eb; }
 
-.infra-title {
-  font-weight: 600;
-  font-size: 13px;
-  line-height: 1.25;
-  color: var(--node-text, #1e293b);
-}
-
-/* Блок ресурсов и портов */
-.infra-ports {
+.building-node-header {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  align-items: center;
+  gap: 9px;
+  min-height: 46px;
+  padding: 8px 14px;
+  border-bottom: 1px solid #e2e8f0;
 }
 
-.port-row {
+.building-node-icon { width: 26px; height: 26px; flex: 0 0 26px; color: #475569; }
+.building-node-name { min-width: 0; font-size: 12px; font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; }
+
+.building-node-resource {
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 0 8px;
-  min-height: 22px;
+  min-height: 54px;
+  padding: 8px 24px;
 }
 
-.port-label {
-  font-size: 12px;
-  color: var(--node-subtext, #475569);
-  white-space: nowrap;
+.building-node-resource + .building-node-resource { border-top: 1px solid #e2e8f0; }
+.building-node-resource-title { margin-bottom: 5px; font-size: 11px; line-height: 1.2; }
+.building-node-statuses { display: flex; align-items: center; gap: 10px; }
+.building-node-status-icon { width: 16px; height: 16px; flex: 0 0 16px; color: #a3aab5; }
+.building-node-status-icon.status-active.status-normal { color: #16a34a; }
+.building-node-status-icon.status-active.status-emergency { color: #dc2626; }
+.building-node-status-icon.status-active.status-repair { color: #d97706; }
+
+.building-node-port {
+  z-index: 2;
+  --ngd-port-size: 10px;
+  --ngd-port-background-color: #d97706;
+  --ngd-port-border-color: #fff;
+  --ngd-port-border-size: 2px;
 }
 
-/* Группа из 3 иконок статусов */
-.status-group {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
-}
-
-.status-icon {
-  width: 15px;
-  height: 15px;
-  display: block;
-  color: #94a3b8;
-  opacity: 0.25;
-  transition: opacity 0.2s ease, color 0.2s ease;
-
-  &.is-active {
-    opacity: 1;
-  }
-
-  &.is-active.status-icon--normal {
-    color: var(--status-normal-color, #16a34a);
-  }
-
-  &.is-active.status-icon--emergency {
-    color: var(--status-emergency-color, #dc2626);
-  }
-
-  &.is-active.status-icon--repair {
-    color: var(--status-repair-color, #d97706);
-  }
-}
-
-/* Точки портов на левой и правой границах карточки */
-.port-badge {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-
-  &--left {
-    left: -19px;
-  }
-
-  &--right {
-    right: -19px;
-  }
-
-  &--water {
-    --ng-diagram-port-background: var(--port-water-color, #0284c7);
-  }
-
-  &--power {
-    --ng-diagram-port-background: var(--port-power-color, #ca8a04);
-  }
-}
+.building-node-resource--water .building-node-port { --ngd-port-background-color: #0284c7; }
