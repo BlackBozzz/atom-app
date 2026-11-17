@@ -2,157 +2,149 @@
   display: block;
   width: 100%;
   height: 100%;
-  border-radius: 12px;
+  border-radius: 16px;
 }
 
 .district-group {
+  position: relative;
   display: flex;
   flex-direction: column;
   width: 100%;
   height: 100%;
   box-sizing: border-box;
-  background-color: var(--district-bg, rgba(241, 245, 249, 0.65));
-  border: 2px dashed var(--node-border, #94a3b8);
-  border-radius: 12px;
-  transition: border-color 0.2s ease, background-color 0.2s ease;
+  border-radius: 16px;
+  border: 1.5px dashed color-mix(in srgb, var(--accent-water) 45%, var(--line));
+  background:
+    radial-gradient(120% 90% at 0% 0%,
+    color-mix(in srgb, var(--accent-water) 9%, transparent) 0%, transparent 60%),
+    radial-gradient(120% 90% at 100% 100%,
+    color-mix(in srgb, var(--accent-power) 9%, transparent) 0%, transparent 60%),
+    color-mix(in srgb, var(--surface-1) 55%, transparent);
+  transition: border-color 0.22s ease, box-shadow 0.22s ease;
 
   :host.is-highlighted & {
-    border-color: var(--diagram-highlight-color, #2563eb);
+    border-color: var(--accent-info);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-info) 30%, transparent);
+  }
+
+  :host.is-collapsed & {
+    border-style: solid;
+    background: linear-gradient(120deg,
+    color-mix(in srgb, var(--surface-2) 90%, var(--accent-water) 10%),
+    color-mix(in srgb, var(--surface-2) 90%, var(--accent-power) 10%));
   }
 }
 
 .district-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  background-color: var(--node-bg, #ffffff);
-  border-bottom: 1px solid var(--node-border, #cbd5e1);
-  border-radius: 10px 10px 0 0;
+  gap: 9px;
+  height: 44px;
+  padding: 0 12px;
+  flex-shrink: 0;
+  border-radius: 14px 14px 0 0;
+  background: linear-gradient(90deg,
+  color-mix(in srgb, var(--surface-2) 88%, var(--accent-water) 12%),
+  var(--surface-2) 55%,
+  color-mix(in srgb, var(--surface-2) 88%, var(--accent-power) 12%));
+  border-bottom: 1px solid var(--line-soft);
   cursor: grab;
+
+  :host.is-collapsed & { border-radius: 14px; border-bottom: none; }
 }
 
 .collapse-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  background: transparent;
-  border: 1px solid var(--node-border, #cbd5e1);
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 10px;
-  color: var(--node-text, #1e293b);
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
-  transition: all 0.2s ease;
   padding: 0;
+  border-radius: 7px;
+  border: 1px solid var(--line);
+  background: var(--surface-3);
+  color: var(--text-2);
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+
+  svg {
+    width: 13px;
+    height: 13px;
+    transform: rotate(90deg);
+    transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  :host.is-collapsed & svg { transform: rotate(0deg); }
 
   &:hover {
-    background-color: var(--canvas-bg, #f1f5f9);
-    border-color: var(--diagram-highlight-color, #2563eb);
-    color: var(--diagram-highlight-color, #2563eb);
+    background: color-mix(in srgb, var(--accent-info) 22%, var(--surface-3));
+    border-color: var(--accent-info);
+    color: var(--text-1);
   }
+  &:active { transform: scale(0.93); }
 }
 
-.district-icon {
-  width: 20px;
-  height: 20px;
-  color: var(--node-icon-color, #2563eb);
-  flex-shrink: 0;
-}
+.district-icon { width: 18px; height: 18px; flex-shrink: 0; color: var(--accent-water); fill: currentColor; }
 
 .district-title {
-  font-weight: 600;
-  font-size: 14px;
-  color: var(--node-text, #1e293b);
+  font-weight: 650;
+  font-size: 13.5px;
+  letter-spacing: 0.01em;
+  color: var(--text-1);
   user-select: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.district-body {
-  flex: 1;
-  position: relative;
+.district-count {
+  margin-left: auto;
+  flex-shrink: 0;
+  min-width: 24px;
+  padding: 2px 7px;
+  border-radius: 99px;
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-2);
+  background: var(--surface-3);
+  border: 1px solid var(--line-soft);
 }
 
-/* --- Стилизация портов группы --- */
-::ng-deep .port-water {
-  --ngd-port-size: 12px;
-  --ngd-port-background-color: #0284c7; /* Голубой для воды */
+.district-body { flex: 1; position: relative; }
+
+/* ---- порты группы ---- */
+.gp {
+  --ngd-port-size: 13px;
   --ngd-port-border-size: 2px;
-  --ngd-port-border-color: var(--district-bg, rgba(241, 245, 249, 0.8));
   --ngd-port-border-radius: 50%;
-  /* Смещаем на 50% влево, чтобы центр точки был ровно на границе */
-  transform: translate(-50%, -50%);
-  cursor: pointer;
+  --ngd-port-border-color: var(--surface-1);
+  cursor: crosshair;
+  transition: box-shadow 0.18s ease;
 }
 
-::ng-deep .port-power {
-  --ngd-port-size: 12px;
-  --ngd-port-background-color: #ca8a04; /* Оранжевый для электричества */
-  --ngd-port-border-size: 2px;
-  --ngd-port-border-color: var(--district-bg, rgba(241, 245, 249, 0.8));
-  --ngd-port-border-radius: 50%;
-  /* Смещаем на 50% вправо, чтобы центр точки был ровно на границе */
-  transform: translate(50%, -50%);
-  cursor: pointer;
+.gp-water { --ngd-port-background-color: var(--accent-water); --ngd-port-background-color-hover: #67e8f9; }
+.gp-power { --ngd-port-background-color: var(--accent-power); --ngd-port-background-color-hover: #fcd34d; }
+
+.gp-in  { transform: translate(-50%, -50%); }
+.gp-out { transform: translate(50%, -50%); }
+
+.gp-in.gp-water  { margin-top: -20px; }
+.gp-in.gp-power  { margin-top: 20px; }
+.gp-out.gp-water { margin-top: -20px; }
+.gp-out.gp-power { margin-top: 20px; }
+
+:host.is-collapsed {
+  .gp-in.gp-water, .gp-in.gp-power,
+  .gp-out.gp-water, .gp-out.gp-power { margin-top: 0; }
+  .gp-in.gp-water, .gp-out.gp-water { margin-left: 0; }
 }
 
-/* Подсветка портов при наведении на группу */
-.district-group:hover ::ng-deep .port-water,
-.district-group:hover ::ng-deep .port-power {
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
-  transform: translate(-50%, -50%) scale(1.2); /* Для воды */
-}
+:host.is-collapsed .gp-water.gp-in  { transform: translate(-50%, calc(-50% - 8px)); }
+:host.is-collapsed .gp-power.gp-in  { transform: translate(-50%, calc(-50% + 8px)); }
+:host.is-collapsed .gp-water.gp-out { transform: translate(50%, calc(-50% - 8px)); }
+:host.is-collapsed .gp-power.gp-out { transform: translate(50%, calc(-50% + 8px)); }
 
-.district-group:hover ::ng-deep .port-power {
-  transform: translate(50%, -50%) scale(1.2); /* Для энергии */
-}
-
-/* Порты группы — входы слева */
-::ng-deep .port-water-in,
-::ng-deep .port-power-in {
-  --ngd-port-size: 12px;
-  --ngd-port-border-size: 2px;
-  --ngd-port-border-color: var(--district-bg, rgba(241, 245, 249, 0.8));
-  --ngd-port-border-radius: 50%;
-  transform: translate(-50%, -50%);
-  cursor: pointer;
-}
-
-::ng-deep .port-water-in {
-  --ngd-port-background-color: #0284c7; /* Голубой для воды */
-}
-
-::ng-deep .port-power-in {
-  --ngd-port-background-color: #ca8a04; /* Оранжевый для электричества */
-}
-
-/* Порты группы — выходы справа */
-::ng-deep .port-water-out,
-::ng-deep .port-power-out {
-  --ngd-port-size: 12px;
-  --ngd-port-border-size: 2px;
-  --ngd-port-border-color: var(--district-bg, rgba(241, 245, 249, 0.8));
-  --ngd-port-border-radius: 50%;
-  transform: translate(50%, -50%);
-  cursor: pointer;
-}
-
-::ng-deep .port-water-out {
-  --ngd-port-background-color: #0284c7;
-}
-
-::ng-deep .port-power-out {
-  --ngd-port-background-color: #ca8a04;
-}
-
-/* Подсветка при наведении */
-.district-group:hover ::ng-deep .port-water-in,
-.district-group:hover ::ng-deep .port-water-out {
-  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.3);
-}
-
-.district-group:hover ::ng-deep .port-power-in,
-.district-group:hover ::ng-deep .port-power-out {
-  box-shadow: 0 0 0 3px rgba(202, 138, 4, 0.3);
+:host-context(.shell:not(.no-glow)) {
+  .gp-water { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-water) 18%, transparent); }
+  .gp-power { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-power) 18%, transparent); }
 }

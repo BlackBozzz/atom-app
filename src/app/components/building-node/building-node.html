@@ -1,17 +1,24 @@
-<div class="infra-card">
-  <!-- Шапка: Иконка сверху, название снизу -->
+<div class="infra-card" [attr.data-tone]="worstTone()">
+  <span class="pulse-ring" aria-hidden="true"></span>
+
   <div class="infra-header">
     <div class="infra-icon-wrapper">
       <svg class="infra-icon" aria-hidden="true">
         <use [attr.href]="'assets/icons.svg#' + (nodeData().iconId || 'infra-station-icon')"></use>
       </svg>
     </div>
-    <span class="infra-title">{{ nodeData().name }}</span>
+    <div class="infra-heading">
+      <span class="infra-title">{{ nodeData().name }}</span>
+      <span class="infra-code">{{ nodeData().code || node().id }}</span>
+    </div>
   </div>
 
-  <!-- Ресурсы и порты (вход слева, выход справа) -->
+  <div class="load-track" [attr.data-tone]="worstTone()">
+    <span class="load-fill" [style.width.%]="load()"></span>
+    <span class="load-value">{{ load() }}%</span>
+  </div>
+
   <div class="infra-ports">
-    <!-- Водоснабжение -->
     <div class="port-row">
       <ng-diagram-port
         id="port-water-in"
@@ -19,9 +26,7 @@
         side="left"
         class="port-badge port-badge--left port-badge--water"
       />
-
       <span class="port-label">Водоснабжение</span>
-
       <div class="status-group" role="group" aria-label="Статус водоснабжения">
         @for (item of statusList; track item.id) {
           <svg
@@ -34,7 +39,6 @@
           </svg>
         }
       </div>
-
       <ng-diagram-port
         id="port-water-out"
         type="source"
@@ -43,7 +47,6 @@
       />
     </div>
 
-    <!-- Электроснабжение -->
     <div class="port-row">
       <ng-diagram-port
         id="port-electricity-in"
@@ -51,9 +54,7 @@
         side="left"
         class="port-badge port-badge--left port-badge--power"
       />
-
       <span class="port-label">Электроснабжение</span>
-
       <div class="status-group" role="group" aria-label="Статус электроснабжения">
         @for (item of statusList; track item.id) {
           <svg
@@ -66,7 +67,6 @@
           </svg>
         }
       </div>
-
       <ng-diagram-port
         id="port-electricity-out"
         type="source"

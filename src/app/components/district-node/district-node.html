@@ -1,56 +1,36 @@
-<ng-diagram-node-resize-adornment>
-  <div
-    class="district-group"
-    ngDiagramGroupHighlighted
-    ngDiagramNodeSelected
-    [node]="node()"
-  >
-    <div class="district-header">
-      <button
-        class="collapse-btn"
-        (click)="toggleCollapse($event)"
-        [title]="isCollapsed() ? 'Развернуть' : 'Свернуть'"
-      >
-        {{ isCollapsed() ? '▶' : '▼' }}
-      </button>
+<div class="district-group">
+  <div class="district-header">
+    <button
+      type="button"
+      class="collapse-btn"
+      data-no-drag="true"
+      data-no-pan="true"
+      (click)="toggleCollapse($event)"
+      [attr.aria-expanded]="!isCollapsed()"
+      [title]="isCollapsed() ? 'Развернуть район' : 'Свернуть район'"
+    >
+      <svg viewBox="0 0 16 16" aria-hidden="true">
+        <path d="M5 3l6 5-6 5" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+    </button>
 
-      @if (nodeData().iconId) {
-        <svg class="district-icon" aria-hidden="true">
-          <use [attr.href]="'assets/icons.svg#' + nodeData().iconId"></use>
-        </svg>
-      }
-
-      <span class="district-title">{{ nodeData().name }}</span>
-    </div>
-
-    @if (!isCollapsed()) {
-      <div class="district-body"></div>
+    @if (nodeData().iconId) {
+      <svg class="district-icon" aria-hidden="true">
+        <use [attr.href]="'assets/icons.svg#' + nodeData().iconId"></use>
+      </svg>
     }
 
-    <!-- 4 порта — в точности как у дочерних узлов -->
-    <ng-diagram-port
-      id="port-water-in"
-      side="left"
-      type="target"
-      class="port-water-in"
-    />
-    <ng-diagram-port
-      id="port-electricity-in"
-      side="left"
-      type="target"
-      class="port-power-in"
-    />
-    <ng-diagram-port
-      id="port-water-out"
-      side="right"
-      type="source"
-      class="port-water-out"
-    />
-    <ng-diagram-port
-      id="port-electricity-out"
-      side="right"
-      type="source"
-      class="port-power-out"
-    />
+    <span class="district-title">{{ nodeData().name }}</span>
+    <span class="district-count">{{ childCount() }}</span>
   </div>
-</ng-diagram-node-resize-adornment>
+
+  @if (!isCollapsed()) {
+    <div class="district-body"></div>
+  }
+
+  <ng-diagram-port id="port-water-in"       side="left"  type="target" class="gp gp-in  gp-water" />
+  <ng-diagram-port id="port-electricity-in" side="left"  type="target" class="gp gp-in  gp-power" />
+  <ng-diagram-port id="port-water-out"      side="right" type="source" class="gp gp-out gp-water" />
+  <ng-diagram-port id="port-electricity-out" side="right" type="source" class="gp gp-out gp-power" />
+</div>
