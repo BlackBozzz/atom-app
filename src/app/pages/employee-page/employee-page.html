@@ -1,0 +1,175 @@
+<div class="employees-page">
+  <!-- Тулбар: вкладки слева, кнопки справа -->
+  <div class="toolbar">
+    <p-tabs [value]="activeTab()" (valueChange)="activeTab.set($event)" styleClass="toolbar-tabs">
+      <p-tablist>
+        <p-tab [value]="0">
+          <i class="pi pi-users" style="margin-right: 6px"></i>
+          Рабочие
+        </p-tab>
+        <p-tab [value]="1">
+          <i class="pi pi-sitemap" style="margin-right: 6px"></i>
+          Распределение бригад
+        </p-tab>
+      </p-tablist>
+      <!-- Панели тулбара не нужны — скрываем через CSS -->
+      <p-tabpanels>
+        <p-tabpanel [value]="0"></p-tabpanel>
+        <p-tabpanel [value]="1"></p-tabpanel>
+      </p-tabpanels>
+    </p-tabs>
+
+    <div class="toolbar-actions">
+      <p-button
+        label="Обновить"
+        icon="pi pi-refresh"
+        (onClick)="reload()"
+        [loading]="loading()"
+        [outlined]="true"
+      />
+      <p-button
+        label="Очистить БД"
+        icon="pi pi-trash"
+        severity="danger"
+        (onClick)="clearAll()"
+        [loading]="loading()"
+      />
+      <p-button
+        label="Очистить БД"
+        icon="pi pi-reload"
+        severity="success"
+        [loading]="loading()"
+      />
+    </div>
+  </div>
+
+  <!-- Содержимое вкладок -->
+  <div class="content">
+    <p-tabs [value]="activeTab()" (valueChange)="activeTab.set($event ?? 0)" styleClass="content-tabs">
+      <p-tabpanels>
+        <!-- Вкладка 1: Рабочие -->
+        <p-tabpanel [value]="0">
+          <div class="table-caption">
+            <p-button
+              label="Сбросить фильтры"
+              icon="pi pi-filter-slash"
+              [text]="true"
+              (onClick)="resetFilters()"
+              size="small"
+            />
+          </div>
+
+          <p-table
+            [value]="filteredEmployees()"
+            [loading]="loading()"
+            responsiveLayout="scroll"
+            styleClass="p-datatable-sm p-datatable-gridlines"
+          >
+            <ng-template pTemplate="header">
+              <tr>
+                <th style="width: 10%">Табельный</th>
+                <th style="width: 18%">Фамилия</th>
+                <th style="width: 18%">Имя</th>
+                <th style="width: 18%">Отчество</th>
+                <th style="width: 12%">Стаж с</th>
+                <th style="width: 24%">Квалификации</th>
+              </tr>
+              <tr>
+                <th>
+                  <input
+                    pInputText
+                    type="text"
+                    [ngModel]="filterTabel()"
+                    (ngModelChange)="filterTabel.set($event)"
+                    placeholder="№"
+                    class="p-column-filter"
+                  />
+                </th>
+                <th>
+                  <input
+                    pInputText
+                    type="text"
+                    [ngModel]="filterLastName()"
+                    (ngModelChange)="filterLastName.set($event)"
+                    placeholder="Фамилия"
+                    class="p-column-filter"
+                  />
+                </th>
+                <th>
+                  <input
+                    pInputText
+                    type="text"
+                    [ngModel]="filterFirstName()"
+                    (ngModelChange)="filterFirstName.set($event)"
+                    placeholder="Имя"
+                    class="p-column-filter"
+                  />
+                </th>
+                <th>
+                  <input
+                    pInputText
+                    type="text"
+                    [ngModel]="filterMiddleName()"
+                    (ngModelChange)="filterMiddleName.set($event)"
+                    placeholder="Отчество"
+                    class="p-column-filter"
+                  />
+                </th>
+                <th></th>
+                <th></th>
+              </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-employee>
+              <tr>
+                <td>{{ employee.tabel }}</td>
+                <td>{{ employee.lastName }}</td>
+                <td>{{ employee.firstName }}</td>
+                <td>{{ employee.middleName || '—' }}</td>
+                <td>{{ employee.startDateExperience || '—' }}</td>
+                <td>
+                  @if (employee.qualifications?.length) {
+                    @for (q of employee.qualifications; track q.idQualification) {
+                      <p-tag
+                        [value]="q.resourceType + ': ' + q.proff.toFixed(1)"
+                        [severity]="resourceSeverity(q.resourceType)"
+                        styleClass="qualification-tag"
+                      />
+                    }
+                  } @else {
+                    <span class="muted">—</span>
+                  }
+                </td>
+              </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td colspan="6" class="empty-row">
+                  <i class="pi pi-inbox" style="font-size: 2rem; margin-bottom: 8px; display: block"></i>
+                  <div>Нет данных о рабочих</div>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </p-tabpanel>
+
+        <!-- Вкладка 2: Распределение бригад -->
+        <p-tabpanel [value]="1">
+          <div class="brigade-placeholder">
+            <i class="pi pi-sitemap" style="font-size: 2.5rem; color: #94a3b8"></i>
+            <strong>Раздел распределения бригад в разработке</strong>
+            <span class="muted">
+              Здесь будет интерфейс назначения рабочих на объекты и формирования
+              бригад по видам ресурсов (water / electricity).
+            </span>
+          </div>
+        </p-tabpanel>
+      </p-tabpanels>
+    </p-tabs>
+  </div>
+</div>
+
+<!-- Глобальные оверлеи PrimeNG -->
+<p-toast />
+<p-confirmdialog />

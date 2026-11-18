@@ -8,5 +8,10 @@ export const routes: Routes = [
   {
     path: 'factory',
     component: FactoryPage,
+  },
+  {
+    path: 'employees',
+    loadComponent: () =>
+      import('./pages/employee-page/employee-page').then((m) => m.EmployeesPage),
   }
 ];
