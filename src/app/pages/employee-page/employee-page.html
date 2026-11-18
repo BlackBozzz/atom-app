@@ -1,4 +1,6 @@
 <div class="employees-page">
+  <p-toast />
+  <p-confirmDialog />
   <!-- Toolbar -->
   <div class="toolbar">
     <p-tabs [(value)]="activeTab" class="toolbar-tabs">
@@ -11,17 +13,23 @@
     <div class="toolbar-actions">
       @if (activeTab() === 0) {
         <p-button
+          label="Обновить"
+          icon="pi pi-refresh"
+          severity="secondary"
+          outlined
+          [loading]="loading()"
+          (onClick)="reload()"
+        />
+        <p-button
           label="Очистить фильтры"
           icon="pi pi-filter-slash"
           severity="secondary"
-          outlined
           (onClick)="resetFilters()"
         />
         <p-button
           label="Очистить БД"
           icon="pi pi-trash"
           severity="danger"
-          outlined
           (onClick)="clearAll()"
         />
       }
