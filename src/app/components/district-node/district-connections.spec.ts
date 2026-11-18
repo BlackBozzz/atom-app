@@ -32,6 +32,22 @@ describe('district connections', () => {
     expect(restored).toEqual(edges);
   });
 
+  it('switches to auto-route when collapsed, then restores the ELK waypoints', () => {
+    const connection: Edge = {
+      ...edge('routed', 'a', 'b', 'port-water-out', 'port-water-in'),
+      routingMode: 'manual', routing: 'orthogonal',
+      points: [{ x: 10, y: 40 }, { x: 45, y: 40 }, { x: 45, y: 90 }, { x: 100, y: 90 }],
+    };
+    const collapsed = apply([connection], collapseDistrictEdges([connection], 'district', new Set(['a'])));
+    expect(collapsed[0].routingMode).toBe('auto');
+    expect(collapsed[0].points).toBeUndefined();
+
+    const expanded = apply(collapsed, expandDistrictEdges(collapsed, 'district'));
+    expect(expanded[0].routingMode).toBe('manual');
+    expect(expanded[0].points).toEqual(connection.points);
+    expect(expanded[0].data).toEqual(connection.data);
+  });
+
   it('restores only the requested district when two districts share an edge', () => {
     const edges = [edge('cross', 'a', 'b', 'port-water-out', 'port-water-in')];
     const aCollapsed = apply(edges, collapseDistrictEdges(edges, 'district-a', new Set(['a'])));

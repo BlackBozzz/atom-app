@@ -34,7 +34,6 @@ export class BuildingNode {
   ] as const;
 
   status(resource: ResourceKind): ResourceStatus | undefined {
-    const data = this.nodeData();
-    return data.status?.[resource] ?? (resource === 'water' ? data.waterStatus : data.electricityStatus);
+    return this.nodeData().status?.[resource];
   }
 }

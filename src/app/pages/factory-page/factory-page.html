@@ -5,13 +5,20 @@
 
   <main class="diagram-area">
     @if (ready()) {
-      <ng-diagram [config]="config" [model]="model()" [nodeTemplateMap]="nodeTemplateMap">
+      <ng-diagram
+        [config]="config"
+        [model]="model()"
+        [nodeTemplateMap]="nodeTemplateMap"
+        [edgeTemplateMap]="edgeTemplateMap"
+      >
         <ng-diagram-background />
       </ng-diagram>
     } @else if (layoutError()) {
-      <p class="diagram-message">{{ layoutError() }}</p>
+      <p class="diagram-message" role="alert">{{ layoutError() }}</p>
+    } @else if (empty()) {
+      <p class="diagram-message">В базе данных пока нет объектов инфраструктуры.</p>
     } @else {
-      <p class="diagram-message">Расстановка узлов…</p>
+      <p class="diagram-message">{{ loadingMessage() }}</p>
     }
   </main>
 </div>

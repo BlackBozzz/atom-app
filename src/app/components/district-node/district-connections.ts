@@ -5,6 +5,8 @@ type Endpoint = { nodeId: string; portId?: string };
 type SavedEndpoints = { source?: Endpoint; target?: Endpoint };
 type EdgeData = Record<string, unknown> & {
   districtEndpoints?: Record<string, SavedEndpoints>;
+  // При сворачивании маршруты ELK больше не подходят к портам группы.
+  unfoldedRoute?: Pick<Edge, 'points' | 'routingMode' | 'routing'>;
 };
 
 type EdgeUpdate = Pick<Edge, 'id'> & Partial<Edge>;
@@ -30,6 +32,9 @@ export function collapseDistrictEdges(edges: readonly Edge[], districtId: string
     if (fromChild === toChild) return [];
 
     const data = (edge.data ?? {}) as EdgeData;
+    const unfoldedRoute = data.unfoldedRoute ?? {
+      points: edge.points, routingMode: edge.routingMode, routing: edge.routing,
+    };
     const saved: SavedEndpoints = fromChild
       ? { source: { nodeId: edge.source, portId: edge.sourcePort } }
       : { target: { nodeId: edge.target, portId: edge.targetPort } };
@@ -39,8 +44,12 @@ export function collapseDistrictEdges(edges: readonly Edge[], districtId: string
       ...(fromChild
         ? { source: districtId, sourcePort: districtPort(edge.sourcePort, edge.targetPort, true) }
         : { target: districtId, targetPort: districtPort(edge.targetPort, edge.sourcePort, false) }),
+      // В свёрнутом состоянии ng-diagram прокладывает временную линию к группе.
+      // Иначе сохранённые ELK-координаты ведут к скрытому зданию.
+      points: undefined,
+      routingMode: 'auto',
       data: {
-        ...data,
+        ...data, unfoldedRoute,
         districtEndpoints: { ...data.districtEndpoints, [districtId]: saved },
       },
     }];
@@ -56,14 +65,21 @@ export function expandDistrictEdges(edges: readonly Edge[], districtId: string):
     const districtEndpoints = { ...data.districtEndpoints };
     delete districtEndpoints[districtId];
     const updatedData: EdgeData = { ...data };
-    if (Object.keys(districtEndpoints).length) {
+    const stillCollapsed = Object.keys(districtEndpoints).length > 0;
+    if (stillCollapsed) {
       updatedData.districtEndpoints = districtEndpoints;
     } else {
       delete updatedData.districtEndpoints;
     }
 
+    const original = data.unfoldedRoute;
+    if (!stillCollapsed) delete updatedData.unfoldedRoute;
+
     return [{
       id: edge.id,
+      ...(stillCollapsed ? { points: undefined, routingMode: 'auto' as const } : {
+        points: original?.points, routingMode: original?.routingMode, routing: original?.routing,
+      }),
       ...(saved.source ? { source: saved.source.nodeId, sourcePort: saved.source.portId } : {}),
       ...(saved.target ? { target: saved.target.nodeId, targetPort: saved.target.portId } : {}),
       data: updatedData,
