@@ -35,10 +35,11 @@
         [loading]="loading()"
       />
       <p-button
-        label="Очистить БД"
+        label="Распределить"
         icon="pi pi-reload"
         severity="success"
         [loading]="loading()"
+        (click)="runCalculation()"
       />
     </div>
   </div>

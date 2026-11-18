@@ -13,6 +13,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 
 import { EmployeeService } from '../../services/employee.service';
 import type { EmployeeDto } from '../../models/employee.dto';
+import { PlannerService } from '../../services/planner.service';
 
 @Component({
   selector: 'app-employees-page',
@@ -64,30 +65,34 @@ export class EmployeesPage implements OnInit {
     });
   });
 
+  constructor(private plannerService: PlannerService) {}
+
   ngOnInit(): void {
     this.reload();
   }
 
+  runCalculation(): void {
+    this.plannerService.calculatePlan();
+  }
+
   reload(): void {
     this.loading.set(true);
-    this.service
-      .list({ page: 0, size: 1000, sort: 'lastName,asc' })
-      .subscribe({
-        next: (page) => {
-          if (this.destroyRef.destroyed) return;
-          this.employees.set(page.content);
-          this.loading.set(false);
-        },
-        error: () => {
-          if (this.destroyRef.destroyed) return;
-          this.loading.set(false);
-          this.messages.add({
-            severity: 'error',
-            summary: 'Ошибка',
-            detail: 'Не удалось загрузить рабочих',
-          });
-        },
-      });
+    this.service.list({ page: 0, size: 1000, sort: 'lastName,asc' }).subscribe({
+      next: (page) => {
+        if (this.destroyRef.destroyed) return;
+        this.employees.set(page.content);
+        this.loading.set(false);
+      },
+      error: () => {
+        if (this.destroyRef.destroyed) return;
+        this.loading.set(false);
+        this.messages.add({
+          severity: 'error',
+          summary: 'Ошибка',
+          detail: 'Не удалось загрузить рабочих',
+        });
+      },
+    });
   }
 
   clearAll(): void {
@@ -133,7 +138,7 @@ export class EmployeesPage implements OnInit {
   }
 
   resourceSeverity(
-    resourceType: string
+    resourceType: string,
   ): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
     switch (resourceType) {
       case 'water':
