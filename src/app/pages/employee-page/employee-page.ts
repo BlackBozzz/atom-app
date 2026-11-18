@@ -1,19 +1,19 @@
 import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
 import { TableModule } from 'primeng/table';
+import { TreeTableModule } from 'primeng/treetable';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { TabsModule } from 'primeng/tabs';
-import { ConfirmationService, MessageService } from 'primeng/api';
-
+import { ConfirmationService, MessageService, TreeNode } from 'primeng/api'; // ✅ TreeNode отсюда
 import { EmployeeService } from '../../services/employee.service';
-import type { EmployeeDto } from '../../models/employee.dto';
 import { PlannerService } from '../../services/planner.service';
+import type { EmployeeDto } from '../../models/employee.dto';
+import type { BrigadeDto } from '../../models/brigade.dto';
 
 @Component({
   selector: 'app-employees-page',
@@ -22,6 +22,7 @@ import { PlannerService } from '../../services/planner.service';
     CommonModule,
     FormsModule,
     TableModule,
+    TreeTableModule,
     ButtonModule,
     InputTextModule,
     TagModule,
@@ -40,11 +41,13 @@ export class EmployeesPage implements OnInit {
   private readonly messages = inject(MessageService);
 
   readonly loading = signal(false);
+  readonly calculating = signal(false);
+  readonly loadingBrigades = signal(false);
   readonly employees = signal<EmployeeDto[]>([]);
+  readonly brigades = signal<BrigadeDto[]>([]);
+  readonly brigadeTree = signal<TreeNode[]>([]);
 
-  // ✅ Исправлено: тип теперь включает undefined
   readonly activeTab = signal<string | number | undefined>(0);
-
   readonly filterTabel = signal('');
   readonly filterLastName = signal('');
   readonly filterFirstName = signal('');
@@ -55,7 +58,6 @@ export class EmployeesPage implements OnInit {
     const ln = this.filterLastName().trim().toLowerCase();
     const fn = this.filterFirstName().trim().toLowerCase();
     const mn = this.filterMiddleName().trim().toLowerCase();
-
     return this.employees().filter((e) => {
       if (t && !String(e.tabel).toLowerCase().includes(t)) return false;
       if (ln && !e.lastName.toLowerCase().includes(ln)) return false;
@@ -65,14 +67,89 @@ export class EmployeesPage implements OnInit {
     });
   });
 
+  /** Считаем общее количество событий без pipe — через computed. */
+  readonly totalEventsCount = computed(() =>
+    this.brigades().reduce((sum, b) => sum + (b.event_order?.length ?? 0), 0),
+  );
+
   constructor(private plannerService: PlannerService) {}
 
   ngOnInit(): void {
     this.reload();
+    this.loadBrigades();
   }
 
   runCalculation(): void {
-    this.plannerService.calculatePlan();
+    this.calculating.set(true);
+    this.plannerService.calculatePlan().subscribe({
+      next: (res) => {
+        if (this.destroyRef.destroyed) return;
+        const list = res?.brigades ?? [];
+        this.brigades.set(list);
+        this.brigadeTree.set(this.buildTree(list));
+        this.calculating.set(false);
+        this.messages.add({
+          severity: 'success',
+          summary: 'Расчёт завершён',
+          detail: `Сформировано бригад: ${list.length}`,
+        });
+      },
+      error: () => {
+        if (this.destroyRef.destroyed) return;
+        this.calculating.set(false);
+        this.messages.add({
+          severity: 'error',
+          summary: 'Ошибка',
+          detail: 'Не удалось выполнить расчёт',
+        });
+      },
+    });
+  }
+
+  loadBrigades(): void {
+    this.loadingBrigades.set(true);
+    this.plannerService.calculatePlan().subscribe({
+      next: (res) => {
+        if (this.destroyRef.destroyed) return;
+        const list = res?.brigades ?? [];
+        this.brigades.set(list);
+        this.brigadeTree.set(this.buildTree(list));
+        this.loadingBrigades.set(false);
+      },
+      error: () => {
+        if (this.destroyRef.destroyed) return;
+        this.loadingBrigades.set(false);
+      },
+    });
+  }
+
+  private buildTree(brigades: BrigadeDto[]): TreeNode[] {
+    return brigades.map((b) => ({
+      key: `brigade-${b.brigade_id}`,
+      expanded: true,
+      data: {
+        kind: 'brigade',
+        name: `Бригада №${b.brigade_id}`,
+        resourceType: '—',
+        edificeName: `${b.employees?.length ?? 0} чел.`,
+        statusName: `${b.event_order?.length ?? 0} событий`,
+        occurredAt: null,
+        employeesCount: b.employees?.length ?? 0,
+        eventsCount: b.event_order?.length ?? 0,
+      },
+      children: (b.event_order ?? []).map((ev, idx) => ({
+        key: `event-${b.brigade_id}-${ev.idEvent}`,
+        data: {
+          kind: 'event',
+          name: `№${idx + 1}`,
+          resourceType: ev.resourceType,
+          edificeName: ev.edificeName,
+          statusName: ev.statusName,
+          occurredAt: ev.occurredAt,
+          idEvent: ev.idEvent,
+        },
+      })),
+    }));
   }
 
   reload(): void {
@@ -148,5 +225,29 @@ export class EmployeesPage implements OnInit {
       default:
         return 'success';
     }
+  }
+
+  statusSeverity(
+    statusName: string,
+  ): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
+    const s = (statusName ?? '').toLowerCase();
+    if (s.includes('закрыт') || s.includes('выполн')) return 'success';
+    if (s.includes('в работе') || s.includes('актив')) return 'info';
+    if (s.includes('ожид')) return 'warn';
+    if (s.includes('отмен') || s.includes('ошибк')) return 'danger';
+    return 'secondary';
+  }
+
+  formatDateTime(value: string | null): string {
+    if (!value) return '—';
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return value;
+    return d.toLocaleString('ru-RU', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   }
 }

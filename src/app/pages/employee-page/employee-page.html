@@ -1,176 +1,238 @@
 <div class="employees-page">
-  <!-- Тулбар: вкладки слева, кнопки справа -->
+  <!-- Toolbar -->
   <div class="toolbar">
-    <p-tabs [value]="activeTab()" (valueChange)="activeTab.set($event)" styleClass="toolbar-tabs">
+    <p-tabs [(value)]="activeTab" class="toolbar-tabs">
       <p-tablist>
-        <p-tab [value]="0">
-          <i class="pi pi-users" style="margin-right: 6px"></i>
-          Рабочие
-        </p-tab>
-        <p-tab [value]="1">
-          <i class="pi pi-sitemap" style="margin-right: 6px"></i>
-          Распределение бригад
-        </p-tab>
+        <p-tab [value]="0">Рабочие</p-tab>
+        <p-tab [value]="1">Распределение бригад</p-tab>
       </p-tablist>
-      <!-- Панели тулбара не нужны — скрываем через CSS -->
-      <p-tabpanels>
-        <p-tabpanel [value]="0"></p-tabpanel>
-        <p-tabpanel [value]="1"></p-tabpanel>
-      </p-tabpanels>
     </p-tabs>
 
     <div class="toolbar-actions">
-      <p-button
-        label="Обновить"
-        icon="pi pi-refresh"
-        (onClick)="reload()"
-        [loading]="loading()"
-        [outlined]="true"
-      />
-      <p-button
-        label="Очистить БД"
-        icon="pi pi-trash"
-        severity="danger"
-        (onClick)="clearAll()"
-        [loading]="loading()"
-      />
-      <p-button
-        label="Распределить"
-        icon="pi pi-reload"
-        severity="success"
-        [loading]="loading()"
-        (click)="runCalculation()"
-      />
+      @if (activeTab() === 0) {
+        <p-button
+          label="Очистить фильтры"
+          icon="pi pi-filter-slash"
+          severity="secondary"
+          outlined
+          (onClick)="resetFilters()"
+        />
+        <p-button
+          label="Очистить БД"
+          icon="pi pi-trash"
+          severity="danger"
+          outlined
+          (onClick)="clearAll()"
+        />
+      }
+      @if (activeTab() === 1) {
+        <p-button
+          label="Пересчитать"
+          icon="pi pi-refresh"
+          [loading]="calculating()"
+          (onClick)="runCalculation()"
+        />
+      }
     </div>
   </div>
 
-  <!-- Содержимое вкладок -->
+  <!-- Content -->
   <div class="content">
-    <p-tabs [value]="activeTab()" (valueChange)="activeTab.set($event ?? 0)" styleClass="content-tabs">
-      <p-tabpanels>
-        <!-- Вкладка 1: Рабочие -->
-        <p-tabpanel [value]="0">
-          <div class="table-caption">
-            <p-button
-              label="Сбросить фильтры"
-              icon="pi pi-filter-slash"
-              [text]="true"
-              (onClick)="resetFilters()"
-              size="small"
-            />
+    <!-- Вкладка «Рабочие» -->
+    @if (activeTab() === 0) {
+      <div class="table-caption">
+        <span class="muted">Всего: {{ employees().length }}</span>
+      </div>
+
+      <p-table
+        [value]="filteredEmployees()"
+        [loading]="loading()"
+        [globalFilterFields]="['tabel','lastName','firstName','middleName']"
+        responsiveLayout="scroll"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width: 110px">Табельный</th>
+            <th>Фамилия</th>
+            <th>Имя</th>
+            <th>Отчество</th>
+            <th style="width: 130px">Стаж с</th>
+            <th style="width: 320px">Квалификации</th>
+          </tr>
+          <tr>
+            <th>
+              <input
+                pInputText
+                type="text"
+                [ngModel]="filterTabel()"
+                (ngModelChange)="filterTabel.set($event)"
+                placeholder="Поиск"
+              />
+            </th>
+            <th>
+              <input
+                pInputText
+                type="text"
+                [ngModel]="filterLastName()"
+                (ngModelChange)="filterLastName.set($event)"
+                placeholder="Поиск"
+              />
+            </th>
+            <th>
+              <input
+                pInputText
+                type="text"
+                [ngModel]="filterFirstName()"
+                (ngModelChange)="filterFirstName.set($event)"
+                placeholder="Поиск"
+              />
+            </th>
+            <th>
+              <input
+                pInputText
+                type="text"
+                [ngModel]="filterMiddleName()"
+                (ngModelChange)="filterMiddleName.set($event)"
+                placeholder="Поиск"
+              />
+            </th>
+            <th></th>
+            <th></th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-employee>
+          <tr>
+            <td>{{ employee.tabel }}</td>
+            <td>{{ employee.lastName }}</td>
+            <td>{{ employee.firstName }}</td>
+            <td>{{ employee.middleName || '—' }}</td>
+            <td>{{ employee.startDateExperience || '—' }}</td>
+            <td>
+              @if (employee.qualifications?.length) {
+                @for (q of employee.qualifications; track q.idQualification) {
+                  <p-tag
+                    class="qualification-tag"
+                    [value]="q.proff + ' · ' + q.resourceType"
+                    [severity]="resourceSeverity(q.resourceType)"
+                  />
+                }
+              } @else {
+                <span class="muted">—</span>
+              }
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="6" class="empty-row">Нет данных о рабочих</td></tr>
+        </ng-template>
+      </p-table>
+    }
+
+    <!-- Вкладка «Распределение бригад» -->
+    @if (activeTab() === 1) {
+      @if (loadingBrigades()) {
+        <div class="brigade-placeholder">
+          <i class="pi pi-spin pi-spinner" style="font-size: 3rem"></i>
+          <div><strong>Загрузка данных...</strong></div>
+        </div>
+      } @else if (brigadeTree().length === 0) {
+        <div class="brigade-placeholder">
+          <i class="pi pi-users" style="font-size: 3rem"></i>
+          <div>
+            <strong>Распределение ещё не сформировано</strong>
+            <p class="muted">
+              Нажмите «Пересчитать», чтобы запустить оптимизатор и сформировать
+              бригады с последовательностью ликвидации инцидентов.
+            </p>
           </div>
+        </div>
+      } @else {
+        <div class="table-caption">
+          <span class="muted">
+            Бригад: {{ brigades().length }} · Всего событий: {{ totalEventsCount() }}
+          </span>
+        </div>
 
-          <p-table
-            [value]="filteredEmployees()"
-            [loading]="loading()"
-            responsiveLayout="scroll"
-            styleClass="p-datatable-sm p-datatable-gridlines"
-          >
-            <ng-template pTemplate="header">
-              <tr>
-                <th style="width: 10%">Табельный</th>
-                <th style="width: 18%">Фамилия</th>
-                <th style="width: 18%">Имя</th>
-                <th style="width: 18%">Отчество</th>
-                <th style="width: 12%">Стаж с</th>
-                <th style="width: 24%">Квалификации</th>
-              </tr>
-              <tr>
-                <th>
-                  <input
-                    pInputText
-                    type="text"
-                    [ngModel]="filterTabel()"
-                    (ngModelChange)="filterTabel.set($event)"
-                    placeholder="№"
-                    class="p-column-filter"
-                  />
-                </th>
-                <th>
-                  <input
-                    pInputText
-                    type="text"
-                    [ngModel]="filterLastName()"
-                    (ngModelChange)="filterLastName.set($event)"
-                    placeholder="Фамилия"
-                    class="p-column-filter"
-                  />
-                </th>
-                <th>
-                  <input
-                    pInputText
-                    type="text"
-                    [ngModel]="filterFirstName()"
-                    (ngModelChange)="filterFirstName.set($event)"
-                    placeholder="Имя"
-                    class="p-column-filter"
-                  />
-                </th>
-                <th>
-                  <input
-                    pInputText
-                    type="text"
-                    [ngModel]="filterMiddleName()"
-                    (ngModelChange)="filterMiddleName.set($event)"
-                    placeholder="Отчество"
-                    class="p-column-filter"
-                  />
-                </th>
-                <th></th>
-                <th></th>
-              </tr>
-            </ng-template>
+        <p-treeTable
+          [value]="brigadeTree()"
+          [scrollable]="true"
+          scrollHeight="flex"
+          styleClass="brigade-tree"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width: 22%">Назначение / № п/п</th>
+              <th style="width: 14%">Вид ресурса</th>
+              <th style="width: 26%">Объект</th>
+              <th style="width: 16%">Статус</th>
+              <th style="width: 22%">Время события</th>
+            </tr>
+          </ng-template>
 
-            <ng-template pTemplate="body" let-employee>
-              <tr>
-                <td>{{ employee.tabel }}</td>
-                <td>{{ employee.lastName }}</td>
-                <td>{{ employee.firstName }}</td>
-                <td>{{ employee.middleName || '—' }}</td>
-                <td>{{ employee.startDateExperience || '—' }}</td>
-                <td>
-                  @if (employee.qualifications?.length) {
-                    @for (q of employee.qualifications; track q.idQualification) {
-                      <p-tag
-                        [value]="q.resourceType + ': ' + q.proff.toFixed(1)"
-                        [severity]="resourceSeverity(q.resourceType)"
-                        styleClass="qualification-tag"
-                      />
-                    }
-                  } @else {
-                    <span class="muted">—</span>
-                  }
-                </td>
-              </tr>
-            </ng-template>
+          <ng-template pTemplate="body" let-rowNode let-rowData="rowData">
+            <tr
+              [ttRow]="rowNode"
+              [ngClass]="{ 'brigade-row': rowData.kind === 'brigade' }"
+            >
+              <td>
+                <p-treeTableToggler [rowNode]="rowNode" />
+                @if (rowData.kind === 'brigade') {
+                  <i class="pi pi-users brigade-icon"></i>
+                  <strong>{{ rowData.name }}</strong>
+                } @else {
+                  <i class="pi pi-bolt event-icon"></i>
+                  <span>{{ rowData.name }}</span>
+                  <span class="muted event-id">(№ {{ rowData.idEvent }})</span>
+                }
+              </td>
 
-            <ng-template pTemplate="emptymessage">
-              <tr>
-                <td colspan="6" class="empty-row">
-                  <i class="pi pi-inbox" style="font-size: 2rem; margin-bottom: 8px; display: block"></i>
-                  <div>Нет данных о рабочих</div>
-                </td>
-              </tr>
-            </ng-template>
-          </p-table>
-        </p-tabpanel>
+              <td>
+                @if (rowData.kind === 'brigade') {
+                  <span class="muted">Сотрудников: {{ rowData.employeesCount }}</span>
+                } @else {
+                  <p-tag
+                    [value]="rowData.resourceType"
+                    [severity]="resourceSeverity(rowData.resourceType)"
+                  />
+                }
+              </td>
 
-        <!-- Вкладка 2: Распределение бригад -->
-        <p-tabpanel [value]="1">
-          <div class="brigade-placeholder">
-            <i class="pi pi-sitemap" style="font-size: 2.5rem; color: #94a3b8"></i>
-            <strong>Раздел распределения бригад в разработке</strong>
-            <span class="muted">
-              Здесь будет интерфейс назначения рабочих на объекты и формирования
-              бригад по видам ресурсов (water / electricity).
-            </span>
-          </div>
-        </p-tabpanel>
-      </p-tabpanels>
-    </p-tabs>
+              <td>
+                @if (rowData.kind === 'event') {
+                  {{ rowData.edificeName || '—' }}
+                } @else {
+                  <span class="muted">—</span>
+                }
+              </td>
+
+              <td>
+                @if (rowData.kind === 'brigade') {
+                  <span class="muted">Событий: {{ rowData.eventsCount }}</span>
+                } @else {
+                  <p-tag
+                    [value]="rowData.statusName || '—'"
+                    [severity]="statusSeverity(rowData.statusName)"
+                  />
+                }
+              </td>
+
+              <td>
+                @if (rowData.kind === 'event') {
+                  {{ formatDateTime(rowData.occurredAt) }}
+                } @else {
+                  <span class="muted">—</span>
+                }
+              </td>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="emptymessage">
+            <tr><td colspan="5" class="empty-row">Нет данных о бригадах</td></tr>
+          </ng-template>
+        </p-treeTable>
+      }
+    }
   </div>
 </div>
-
-<!-- Глобальные оверлеи PrimeNG -->
-<p-toast />
-<p-confirmdialog />
